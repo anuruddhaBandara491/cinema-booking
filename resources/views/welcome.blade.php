@@ -35,22 +35,21 @@
                 </div>
             </div>
             <div class="grid gap-6 sm:grid-cols-2">
-                <div class="card-surface group overflow-hidden">
-                    <div class="aspect-[3/4] bg-gradient-to-br from-slate-800 via-slate-900 to-black"></div>
-                    <div class="p-4">
-                        <p class="text-xs uppercase text-slate-400">Premiere</p>
-                        <p class="text-lg font-semibold text-white">Starlight Run</p>
-                        <p class="text-sm text-slate-400">Action · 2h 14m</p>
-                    </div>
-                </div>
-                <div class="card-surface group overflow-hidden sm:mt-10">
-                    <div class="aspect-[3/4] bg-gradient-to-br from-rose-900 via-slate-900 to-black"></div>
-                    <div class="p-4">
-                        <p class="text-xs uppercase text-slate-400">Exclusive</p>
-                        <p class="text-lg font-semibold text-white">Velvet Horizon</p>
-                        <p class="text-sm text-slate-400">Drama · 1h 58m</p>
-                    </div>
-                </div>
+                <x-movie-card
+                    title="Starlight Run"
+                    tag="Premiere"
+                    :times="['7:30 PM', '9:45 PM']"
+                    cta-label="Book Now"
+                    cta-href="{{ route('bookings.flow') }}"
+                />
+                <x-movie-card
+                    title="Velvet Horizon"
+                    tag="Exclusive"
+                    :times="['6:15 PM', '8:40 PM']"
+                    cta-label="Book Now"
+                    cta-href="{{ route('bookings.flow') }}"
+                    class="sm:mt-10"
+                />
             </div>
         </div>
     </section>
@@ -62,26 +61,29 @@
                     <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Now Showing</p>
                     <h2 class="text-3xl font-semibold text-white">Top picks this week</h2>
                 </div>
-                <a href="{{ url('/movies') }}" class="text-sm text-rose-300 hover:text-rose-200">View full lineup →</a>
+                <div class="flex flex-col gap-3 text-right sm:items-end">
+                    <a href="{{ url('/movies') }}" class="text-sm text-rose-300 hover:text-rose-200">View full lineup →</a>
+                    @hasanyrole('manager|admin')
+                        <a href="{{ url('/manager/movies/create') }}" class="btn-primary">Add Movie</a>
+                    @endhasanyrole
+                </div>
             </div>
 
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @foreach ([
-                    ['title' => 'Neon Drift', 'genre' => 'Sci-Fi · 2h 08m'],
-                    ['title' => 'Crimson Echo', 'genre' => 'Thriller · 1h 52m'],
-                    ['title' => 'Golden Hour', 'genre' => 'Romance · 2h 01m'],
-                    ['title' => 'Atlas Rising', 'genre' => 'Adventure · 2h 20m'],
+                    ['title' => 'Neon Drift', 'times' => ['5:40 PM', '8:20 PM']],
+                    ['title' => 'Crimson Echo', 'times' => ['6:10 PM', '9:05 PM']],
+                    ['title' => 'Golden Hour', 'times' => ['4:30 PM', '7:15 PM']],
+                    ['title' => 'Atlas Rising', 'times' => ['7:00 PM', '9:50 PM']],
                 ] as $movie)
-                    <div class="group card-surface overflow-hidden transition hover:-translate-y-2 hover:border-white/20 hover:shadow-2xl hover:shadow-black/60">
-                        <div class="relative aspect-[2/3] bg-gradient-to-br from-slate-800 via-slate-900 to-black">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 transition group-hover:opacity-100"></div>
-                            <div class="absolute bottom-4 left-4 rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white">Book</div>
-                        </div>
-                        <div class="p-4">
-                            <p class="text-lg font-semibold text-white">{{ $movie['title'] }}</p>
-                            <p class="text-sm text-slate-400">{{ $movie['genre'] }}</p>
-                        </div>
-                    </div>
+                    <x-movie-card
+                        :title="$movie['title']"
+                        :times="$movie['times']"
+                        cta-label="Book Now"
+                        cta-href="{{ route('bookings.flow') }}"
+                        edit-label="Edit Movie"
+                        edit-href="{{ url('/manager/movies') }}"
+                    />
                 @endforeach
             </div>
         </div>
