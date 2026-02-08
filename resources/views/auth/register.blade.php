@@ -55,7 +55,7 @@
                     </div>
 
                     <div class="flex items-center justify-between text-xs">
-                        <a href="{{ route('login') }}" class="text-rose-300 hover:text-rose-200">Already registered?</a>
+                        <a href="{{ route('auth.login') }}" class="text-rose-300 hover:text-rose-200">Already registered?</a>
                     </div>
 
                     <button class="btn-primary w-full">Register</button>

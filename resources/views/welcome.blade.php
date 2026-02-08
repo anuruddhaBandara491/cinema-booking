@@ -16,7 +16,7 @@
                 <div class="flex flex-wrap gap-4">
                     <a href="{{ url('/movies') }}" class="btn-primary">Browse Movies</a>
                     @guest
-                        <a href="{{ route('login') }}" class="btn-ghost">Login</a>
+                        <a href="{{ route('auth.login') }}" class="btn-ghost">Login</a>
                     @endguest
                 </div>
                 <div class="grid grid-cols-2 gap-4 pt-6 sm:grid-cols-3">

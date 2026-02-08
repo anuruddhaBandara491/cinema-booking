@@ -61,7 +61,7 @@
                     <button class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-white transition hover:border-white/40">Log Out</button>
                 </form>
             @else
-                <a href="{{ route('login') }}" class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-white transition hover:border-white/40">Login</a>
+                <a href="{{ route('auth.login') }}" class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-white transition hover:border-white/40">Login</a>
             @endauth
         </div>
 
@@ -103,7 +103,7 @@
                         </form>
                     </div>
                 @else
-                    <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-white transition hover:border-white/40">Login</a>
+                    <a href="{{ route('auth.login') }}" class="inline-flex items-center justify-center rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-white transition hover:border-white/40">Login</a>
                 @endauth
             </div>
         </div>
