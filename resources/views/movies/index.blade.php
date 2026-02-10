@@ -20,7 +20,7 @@
                         :tag="$movie->is_published ? 'Now Showing' : ($movie->is_upcoming ? 'Upcoming' : 'Draft')"
                         :image="$movie->cover_image_url"
                         cta-label="Book Now"
-                        cta-href="@auth{{ route('bookings.flow') }}@else{{ route('auth.login') }}@endauth"
+                        cta-href="{{ route('bookings.flow') }}"
                     />
                 @endforeach
             </div>

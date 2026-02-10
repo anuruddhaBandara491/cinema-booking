@@ -14,6 +14,10 @@ Route::get('/dashboard', function () {
 
 Route::get('/movies', [MovieController::class, 'index'])->name('movies.index');
 
+Route::get('/bookings/flow', function () {
+    return view('bookings.flow');
+})->name('bookings.flow');
+
 Route::middleware('auth')->group(function () {
     Route::get('/manager/movies', [MovieController::class, 'manage'])
         ->name('manager.movies.index');
@@ -23,10 +27,6 @@ Route::middleware('auth')->group(function () {
         ->name('manager.movies.update');
     Route::delete('/manager/movies/{movie}', [MovieController::class, 'destroy'])
         ->name('manager.movies.destroy');
-
-    Route::get('/bookings/flow', function () {
-        return view('bookings.flow');
-    })->name('bookings.flow');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
