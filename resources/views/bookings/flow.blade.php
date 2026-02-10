@@ -7,6 +7,10 @@
     $times = array_values($movie->show_times ?? []);
     $defaultDate = $dates[0] ?? '';
     $defaultTime = $times[0] ?? '';
+    $ticketTypes = $ticketTypes ?? collect();
+    $ticketCounts = $ticketTypes
+        ->mapWithKeys(fn ($type) => [$type->id => ['adult' => 0, 'child' => 0]])
+        ->all();
 @endphp
 
 <x-app-layout>
@@ -22,7 +26,7 @@
         maxStep: 4,
         selectedDate: @js($defaultDate),
         selectedTime: @js($defaultTime),
-        tickets: { adult: 2, child: 0 },
+        tickets: @js($ticketCounts),
         seats: [],
         paymentMethod: 'card',
         toggleSeat(seat) {
@@ -32,9 +36,14 @@
                 this.seats.push(seat);
             }
         },
+        totalTickets() {
+            return Object.values(this.tickets).reduce((sum, item) => {
+                return sum + (item.adult || 0) + (item.child || 0);
+            }, 0);
+        },
         canContinue() {
             if (this.step === 1) return this.selectedDate && this.selectedTime;
-            if (this.step === 2) return (this.tickets.adult + this.tickets.child) > 0;
+            if (this.step === 2) return this.totalTickets() > 0;
             if (this.step === 3) return this.seats.length > 0;
             return true;
         }
@@ -99,19 +108,48 @@
                 <div x-show="step === 2" x-transition.opacity.duration.300>
                     <h4 class="text-lg font-semibold text-white">Select Tickets</h4>
                     <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                        @foreach ([['label' => 'Adult', 'key' => 'adult', 'price' => 'LKR 1,200'], ['label' => 'Child', 'key' => 'child', 'price' => 'LKR 800']] as $ticket)
-                            <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-canvas-muted px-5 py-4">
+                        @forelse ($ticketTypes as $ticketType)
+                            <div class="rounded-2xl border border-white/10 bg-canvas-muted px-5 py-4">
                                 <div>
-                                    <p class="text-sm uppercase tracking-[0.2em] text-slate-400">{{ $ticket['label'] }}</p>
-                                    <p class="text-lg font-semibold text-white">{{ $ticket['price'] }}</p>
+                                    <p class="text-sm uppercase tracking-[0.2em] text-slate-400">{{ $ticketType->name }}</p>
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    <button type="button" class="h-8 w-8 rounded-full border border-white/10 text-white" @click="tickets.{{ $ticket['key'] }} = Math.max(0, tickets.{{ $ticket['key'] }} - 1)">-</button>
-                                    <span class="min-w-[2ch] text-center text-white" x-text="tickets.{{ $ticket['key'] }}"></span>
-                                    <button type="button" class="h-8 w-8 rounded-full border border-white/10 text-white" @click="tickets.{{ $ticket['key'] }}++">+</button>
+                                <div class="mt-4 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Adult</p>
+                                            <p class="text-lg font-semibold text-white">LKR {{ number_format($ticketType->adult_price, 2) }}</p>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <button type="button" class="h-8 w-8 rounded-full border border-white/10 text-white"
+                                                    @click="tickets[{{ $ticketType->id }}].adult = Math.max(0, tickets[{{ $ticketType->id }}].adult - 1)">-</button>
+                                            <span class="min-w-[2ch] text-center text-white" x-text="tickets[{{ $ticketType->id }}].adult"></span>
+                                            <button type="button" class="h-8 w-8 rounded-full border border-white/10 text-white"
+                                                    @click="tickets[{{ $ticketType->id }}].adult++">+</button>
+                                        </div>
+                                    </div>
+
+                                    @if ($ticketType->has_child)
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Child</p>
+                                                <p class="text-lg font-semibold text-white">LKR {{ number_format($ticketType->child_price, 2) }}</p>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <button type="button" class="h-8 w-8 rounded-full border border-white/10 text-white"
+                                                        @click="tickets[{{ $ticketType->id }}].child = Math.max(0, tickets[{{ $ticketType->id }}].child - 1)">-</button>
+                                                <span class="min-w-[2ch] text-center text-white" x-text="tickets[{{ $ticketType->id }}].child"></span>
+                                                <button type="button" class="h-8 w-8 rounded-full border border-white/10 text-white"
+                                                        @click="tickets[{{ $ticketType->id }}].child++">+</button>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
-                        @endforeach
+                        @empty
+                            <div class="col-span-full rounded-2xl border border-white/10 bg-canvas-muted p-6 text-center text-sm text-slate-400">
+                                No ticket types configured yet.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
 
@@ -143,7 +181,7 @@
                             <div class="mt-3 space-y-2 text-sm text-slate-300">
                                 <p><span class="text-white">Date:</span> <span x-text="selectedDate"></span></p>
                                 <p><span class="text-white">Time:</span> <span x-text="selectedTime"></span></p>
-                                <p><span class="text-white">Tickets:</span> <span x-text="tickets.adult + tickets.child"></span></p>
+                                <p><span class="text-white">Tickets:</span> <span x-text="totalTickets()"></span></p>
                                 <p><span class="text-white">Seats:</span> <span x-text="seats.join(', ')"></span></p>
                             </div>
                         </div>
