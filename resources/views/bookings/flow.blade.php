@@ -11,6 +11,11 @@
     $ticketCounts = $ticketTypes
         ->mapWithKeys(fn ($type) => [$type->id => ['adult' => 0, 'child' => 0]])
         ->all();
+    $boxTypeIds = $ticketTypes
+        ->filter(fn ($type) => strtolower($type->name) === 'box')
+        ->pluck('id')
+        ->values()
+        ->all();
 @endphp
 
 <x-app-layout>
@@ -27,6 +32,7 @@
         selectedDate: @js($defaultDate),
         selectedTime: @js($defaultTime),
         tickets: @js($ticketCounts),
+        boxTypeIds: @js($boxTypeIds),
         seats: [],
         paymentMethod: 'card',
         toggleSeat(seat) {
@@ -41,9 +47,31 @@
                 return sum + (item.adult || 0) + (item.child || 0);
             }, 0);
         },
+        ticketStep(id) {
+            return this.boxTypeIds.includes(id) ? 2 : 1;
+        },
+        ticketTotal(id) {
+            const item = this.tickets[id] || { adult: 0, child: 0 };
+            return (item.adult || 0) + (item.child || 0);
+        },
+        isBoxValid(id) {
+            return this.ticketTotal(id) % 2 === 0;
+        },
+        incrementTicket(id, key) {
+            const step = this.ticketStep(id);
+            this.tickets[id][key] += step;
+        },
+        decrementTicket(id, key) {
+            const step = this.ticketStep(id);
+            this.tickets[id][key] = Math.max(0, this.tickets[id][key] - step);
+        },
         canContinue() {
             if (this.step === 1) return this.selectedDate && this.selectedTime;
-            if (this.step === 2) return this.totalTickets() > 0;
+            if (this.step === 2) {
+                const hasTickets = this.totalTickets() > 0;
+                const boxValid = this.boxTypeIds.every((id) => this.isBoxValid(id));
+                return hasTickets && boxValid;
+            }
             if (this.step === 3) return this.seats.length > 0;
             return true;
         }
@@ -112,6 +140,9 @@
                             <div class="rounded-2xl border border-white/10 bg-canvas-muted px-5 py-4">
                                 <div>
                                     <p class="text-sm uppercase tracking-[0.2em] text-slate-400">{{ $ticketType->name }}</p>
+                                    @if (strtolower($ticketType->name) === 'box')
+                                        <p class="mt-2 text-xs uppercase tracking-[0.2em] text-amber-300">Box seats must be selected in pairs</p>
+                                    @endif
                                 </div>
                                 <div class="mt-4 space-y-3">
                                     <div class="flex items-center justify-between">
@@ -121,10 +152,10 @@
                                         </div>
                                         <div class="flex items-center gap-3">
                                             <button type="button" class="h-8 w-8 rounded-full border border-white/10 text-white"
-                                                    @click="tickets[{{ $ticketType->id }}].adult = Math.max(0, tickets[{{ $ticketType->id }}].adult - 1)">-</button>
+                                                    @click="decrementTicket({{ $ticketType->id }}, 'adult')">-</button>
                                             <span class="min-w-[2ch] text-center text-white" x-text="tickets[{{ $ticketType->id }}].adult"></span>
                                             <button type="button" class="h-8 w-8 rounded-full border border-white/10 text-white"
-                                                    @click="tickets[{{ $ticketType->id }}].adult++">+</button>
+                                                    @click="incrementTicket({{ $ticketType->id }}, 'adult')">+</button>
                                         </div>
                                     </div>
 
@@ -133,13 +164,16 @@
                                             <div>
                                                 <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Child</p>
                                                 <p class="text-lg font-semibold text-white">LKR {{ number_format($ticketType->child_price, 2) }}</p>
+                                                @if (strtolower($ticketType->name) === 'odc')
+                                                    <p class="mt-1 text-[11px] uppercase tracking-[0.2em] text-slate-500">Child seats allowed ages 2-13 only</p>
+                                                @endif
                                             </div>
                                             <div class="flex items-center gap-3">
                                                 <button type="button" class="h-8 w-8 rounded-full border border-white/10 text-white"
-                                                        @click="tickets[{{ $ticketType->id }}].child = Math.max(0, tickets[{{ $ticketType->id }}].child - 1)">-</button>
+                                                        @click="decrementTicket({{ $ticketType->id }}, 'child')">-</button>
                                                 <span class="min-w-[2ch] text-center text-white" x-text="tickets[{{ $ticketType->id }}].child"></span>
                                                 <button type="button" class="h-8 w-8 rounded-full border border-white/10 text-white"
-                                                        @click="tickets[{{ $ticketType->id }}].child++">+</button>
+                                                        @click="incrementTicket({{ $ticketType->id }}, 'child')">+</button>
                                             </div>
                                         </div>
                                     @endif
