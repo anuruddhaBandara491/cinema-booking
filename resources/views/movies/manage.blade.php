@@ -101,7 +101,7 @@
                         :tag="$movie->is_published ? 'Published' : ($movie->is_upcoming ? 'Upcoming' : 'Draft')"
                         :image="$movie->cover_image_url"
                         cta-label="Book Now"
-                        cta-href="{{ route('bookings.flow') }}"
+                        cta-href="{{ route('bookings.flow', $movie) }}"
                         edit-action="openForm({ mode: 'edit', movie })"
                         delete-action="openDelete({ movie })"
                     />

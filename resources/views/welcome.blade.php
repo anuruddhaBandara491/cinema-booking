@@ -40,14 +40,14 @@
                     tag="Premiere"
                     :times="['7:30 PM', '9:45 PM']"
                     cta-label="Book Now"
-                    cta-href="{{ route('bookings.flow') }}"
+                    cta-href="{{ route('movies.index') }}"
                 />
                 <x-movie-card
                     title="Velvet Horizon"
                     tag="Exclusive"
                     :times="['6:15 PM', '8:40 PM']"
                     cta-label="Book Now"
-                    cta-href="{{ route('bookings.flow') }}"
+                    cta-href="{{ route('movies.index') }}"
                     class="sm:mt-10"
                 />
             </div>
@@ -80,7 +80,7 @@
                         :title="$movie['title']"
                         :times="$movie['times']"
                         cta-label="Book Now"
-                        cta-href="{{ route('bookings.flow') }}"
+                        cta-href="{{ route('movies.index') }}"
                         edit-label="Edit Movie"
                         edit-href="{{ url('/manager/movies') }}"
                     />

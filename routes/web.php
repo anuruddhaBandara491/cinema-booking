@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\ProfileController;
+use App\Models\Movie;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -14,8 +15,10 @@ Route::get('/dashboard', function () {
 
 Route::get('/movies', [MovieController::class, 'index'])->name('movies.index');
 
-Route::get('/bookings/flow', function () {
-    return view('bookings.flow');
+Route::get('/bookings/flow/{movie}', function (Movie $movie) {
+    return view('bookings.flow', [
+        'movie' => $movie,
+    ]);
 })->name('bookings.flow');
 
 Route::middleware('auth')->group(function () {

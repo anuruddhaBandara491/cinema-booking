@@ -1,3 +1,14 @@
+@php
+    $windowDays = max(1, (int) ($movie->booking_window_days ?? 3));
+    $dates = collect(range(0, $windowDays - 1))
+        ->map(fn ($offset) => now()->addDays($offset)->format('D, M d'))
+        ->values()
+        ->all();
+    $times = array_values($movie->show_times ?? []);
+    $defaultDate = $dates[0] ?? '';
+    $defaultTime = $times[0] ?? '';
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
         <div>
@@ -9,8 +20,8 @@
     <section class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8" x-data="{
         step: 1,
         maxStep: 4,
-        selectedDate: 'Fri, Feb 14',
-        selectedTime: '7:30 PM',
+        selectedDate: @js($defaultDate),
+        selectedTime: @js($defaultTime),
         tickets: { adult: 2, child: 0 },
         seats: [],
         paymentMethod: 'card',
@@ -58,10 +69,10 @@
                         <div>
                             <h4 class="text-lg font-semibold text-white">Select Date</h4>
                             <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                                @foreach (['Thu, Feb 13', 'Fri, Feb 14', 'Sat, Feb 15', 'Sun, Feb 16', 'Mon, Feb 17', 'Tue, Feb 18'] as $date)
+                                @foreach ($dates as $date)
                                     <button type="button"
-                                        class="rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-slate-200 transition hover:border-accent/60"
-                                        :class="selectedDate === '{{ $date }}' ? 'border-accent/60 bg-card' : ''"
+                                        class="rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-slate-200 transition hover:border-rose-400/60"
+                                        :class="selectedDate === '{{ $date }}' ? 'border-rose-400/80 bg-gradient-to-br from-rose-500/30 via-rose-500/10 to-transparent text-white shadow-[0_0_20px_rgba(244,63,94,0.35)] ring-1 ring-rose-400/40' : ''"
                                         @click="selectedDate = '{{ $date }}'">
                                         {{ $date }}
                                     </button>
@@ -71,10 +82,10 @@
                         <div>
                             <h4 class="text-lg font-semibold text-white">Select Time</h4>
                             <div class="mt-4 flex flex-wrap gap-3">
-                                @foreach (['4:30 PM', '6:00 PM', '7:30 PM', '9:05 PM'] as $time)
+                                @foreach ($times as $time)
                                     <button type="button"
-                                        class="rounded-full border border-white/10 bg-canvas-muted px-4 py-2 text-sm text-slate-200 transition hover:border-accent/60"
-                                        :class="selectedTime === '{{ $time }}' ? 'border-accent/60 bg-card' : ''"
+                                        class="rounded-full border border-white/10 bg-canvas-muted px-4 py-2 text-sm text-slate-200 transition hover:border-amber-300/60"
+                                        :class="selectedTime === '{{ $time }}' ? 'border-amber-300/80 bg-gradient-to-br from-amber-300/30 via-amber-300/10 to-transparent text-white shadow-[0_0_16px_rgba(251,191,36,0.35)] ring-1 ring-amber-300/40' : ''"
                                         @click="selectedTime = '{{ $time }}'">
                                         {{ $time }}
                                     </button>
