@@ -14,10 +14,9 @@
 
 <article {{ $attributes->merge(['class' => 'group card-surface overflow-hidden transition hover:-translate-y-1 accent-glow']) }}>
     <div class="relative aspect-[2/3] overflow-hidden bg-gradient-to-br from-canvas-muted via-card-surface to-canvas">
+        <div class="absolute inset-0 bg-gradient-to-br from-canvas-muted via-card to-canvas"></div>
         @if ($image)
-            <img src="{{ $image }}" alt="{{ $title }} cover" class="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105" />
-        @else
-            <div class="absolute inset-0 bg-gradient-to-br from-canvas-muted via-card to-canvas"></div>
+            <img src="{{ $image }}" alt="{{ $title }} cover" loading="lazy" onerror="this.style.display='none'" class="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105" />
         @endif
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
         @if ($tag)

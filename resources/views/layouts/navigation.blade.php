@@ -36,7 +36,7 @@
 
         <div class="hidden items-center gap-6 md:flex">
             <a href="{{ url('/') }}" class="text-sm font-medium text-slate-200 hover:text-white">Home</a>
-            <a href="{{ url('/movies') }}" class="text-sm font-medium text-slate-200 hover:text-white">Movies</a>
+            <a href="{{ $isManager ? route('manager.movies.index') : route('movies.index') }}" class="text-sm font-medium text-slate-200 hover:text-white">Movies</a>
 
             @auth
                 <a href="{{ url('/bookings') }}" class="text-sm font-medium text-slate-200 hover:text-white">My Bookings</a>
@@ -76,7 +76,7 @@
     <div :class="{ 'block': open, 'hidden': !open }" class="hidden border-t border-white/10 bg-slate-950/95 px-4 pb-6 pt-4 md:hidden">
         <div class="flex flex-col gap-4">
             <a href="{{ url('/') }}" class="text-sm font-medium text-slate-200 hover:text-white">Home</a>
-            <a href="{{ url('/movies') }}" class="text-sm font-medium text-slate-200 hover:text-white">Movies</a>
+            <a href="{{ $isManager ? route('manager.movies.index') : route('movies.index') }}" class="text-sm font-medium text-slate-200 hover:text-white">Movies</a>
 
             @auth
                 <a href="{{ url('/bookings') }}" class="text-sm font-medium text-slate-200 hover:text-white">My Bookings</a>
