@@ -12,10 +12,12 @@
                 No movies are available yet. Check back soon.
             </div>
         @else
-            <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($movies as $movie)
                     <x-movie-card
                         :title="$movie->title"
+                        :start-date="optional($movie->show_start_date)->format('M d, Y')"
+                        :end-date="optional($movie->show_end_date)->format('M d, Y')"
                         :times="$movie->show_times ?? []"
                         :tag="$movie->is_published ? 'Now Showing' : ($movie->is_upcoming ? 'Upcoming' : 'Draft')"
                         :image="$movie->cover_image_url"

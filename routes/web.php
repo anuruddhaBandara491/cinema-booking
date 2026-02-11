@@ -8,7 +8,22 @@ use App\Models\TicketType;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $nowShowing = Movie::query()
+        ->where('is_published', true)
+        ->orderByDesc('published_at')
+        ->take(4)
+        ->get();
+
+    $upcoming = Movie::query()
+        ->where('is_upcoming', true)
+        ->orderBy('show_start_date')
+        ->take(4)
+        ->get();
+
+    return view('welcome', [
+        'nowShowing' => $nowShowing,
+        'upcoming' => $upcoming,
+    ]);
 });
 
 Route::get('/dashboard', function () {

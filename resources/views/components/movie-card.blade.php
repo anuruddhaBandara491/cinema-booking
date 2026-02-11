@@ -1,6 +1,8 @@
 @props([
     'title',
     'image' => null,
+    'startDate' => null,
+    'endDate' => null,
     'times' => [],
     'ctaLabel' => 'Book Now',
     'ctaHref' => '#',
@@ -28,6 +30,11 @@
 
     <div class="p-4">
         <h3 class="text-lg font-semibold text-white">{{ $title }}</h3>
+        @if ($startDate || $endDate)
+            <p class="mt-1 text-[11px] uppercase tracking-[0.2em] text-slate-400">
+                {{ $startDate }}@if ($endDate) - {{ $endDate }}@endif
+            </p>
+        @endif
         @if (!empty($times))
             <div class="mt-2 flex flex-wrap gap-2 text-xs text-slate-300">
                 @foreach ($times as $time)
