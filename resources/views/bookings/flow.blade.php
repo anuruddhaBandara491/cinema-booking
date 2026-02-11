@@ -35,10 +35,31 @@
         boxTypeIds: @js($boxTypeIds),
         seats: [],
         paymentMethod: 'card',
+        seatType(seat) {
+            const row = seat?.toString().charAt(0).toUpperCase();
+            return row === 'G' || row === 'H' ? 'box' : 'odc';
+        },
         toggleSeat(seat) {
             if (this.seats.includes(seat)) {
                 this.seats = this.seats.filter(s => s !== seat);
             } else {
+                const type = this.seatType(seat);
+                const ticketTotals = this.ticketTotalsByType();
+                const seatTotals = this.seatTotalsByType();
+                const boxCapacity = Math.floor(ticketTotals.box / 2);
+
+                if (!ticketTotals[type]) {
+                    return;
+                }
+
+                if (type === 'box' && seatTotals.box >= boxCapacity) {
+                    return;
+                }
+
+                if (type === 'odc' && seatTotals.odc >= ticketTotals.odc) {
+                    return;
+                }
+
                 this.seats.push(seat);
             }
         },
@@ -53,6 +74,24 @@
         ticketTotal(id) {
             const item = this.tickets[id] || { adult: 0, child: 0 };
             return (item.adult || 0) + (item.child || 0);
+        },
+        ticketTotalsByType() {
+            return Object.entries(this.tickets).reduce((totals, [id, counts]) => {
+                const total = (counts.adult || 0) + (counts.child || 0);
+                if (this.boxTypeIds.includes(Number(id))) {
+                    totals.box += total;
+                } else {
+                    totals.odc += total;
+                }
+                return totals;
+            }, { box: 0, odc: 0 });
+        },
+        seatTotalsByType() {
+            return this.seats.reduce((totals, seat) => {
+                const type = this.seatType(seat);
+                totals[type] += 1;
+                return totals;
+            }, { box: 0, odc: 0 });
         },
         isBoxValid(id) {
             return this.ticketTotal(id) % 2 === 0;
@@ -72,7 +111,23 @@
                 const boxValid = this.boxTypeIds.every((id) => this.isBoxValid(id));
                 return hasTickets && boxValid;
             }
-            if (this.step === 3) return this.seats.length > 0;
+            if (this.step === 3) {
+                const ticketTotals = this.ticketTotalsByType();
+                const seatTotals = this.seatTotalsByType();
+                const totalTickets = ticketTotals.box + ticketTotals.odc;
+                const totalSeats = seatTotals.odc + (seatTotals.box * 2);
+                const boxCapacity = Math.floor(ticketTotals.box / 2);
+
+                if (totalTickets === 0) {
+                    return false;
+                }
+
+                if (seatTotals.box > boxCapacity || seatTotals.odc > ticketTotals.odc) {
+                    return false;
+                }
+
+                return totalSeats === totalTickets;
+            }
             return true;
         }
     }">
