@@ -8,7 +8,7 @@
                 <p><span class="text-white">Date:</span> <span x-text="selectedDate"></span></p>
                 <p><span class="text-white">Time:</span> <span x-text="selectedTime"></span></p>
                 <p><span class="text-white">Tickets:</span> <span x-text="totalTickets()"></span></p>
-                <p><span class="text-white">Seats:</span> <span x-text="seats.join(', ')\u00a0||\u00a0'None'"></span></p>
+                <p><span class="text-white">Seats:</span> <span x-text="seats.join(', ') || 'None'"></span></p>
             </div>
         </div>
         <div class="rounded-2xl border border-white/10 bg-canvas-muted p-5">
