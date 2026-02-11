@@ -222,8 +222,8 @@
                                         @foreach ($cols as $col)
                                             @php($seat = $row.$col)
                                             <button type="button"
-                                                class="h-8 w-10 rounded-md border border-rose-500/30 bg-rose-500/10 text-[10px] font-semibold text-rose-100 transition hover:border-rose-400/70"
-                                                :class="seats.includes('{{ $seat }}') ? 'border-rose-300 bg-rose-400/30 text-white shadow-[0_0_12px_rgba(244,63,94,0.35)]' : ''"
+                                                class="h-8 w-10 rounded-md border border-white/40 bg-white/90 text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
+                                                :class="seats.includes('{{ $seat }}') ? '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]' : ''"
                                                 @click="toggleSeat('{{ $seat }}')">
                                                 {{ $seat }}
                                             </button>
@@ -246,8 +246,8 @@
                                             @foreach ($boxLeft as $col)
                                                 @php($seat = $row.$col)
                                                 <button type="button"
-                                                    class="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1.5 text-[10px] font-semibold text-rose-100 transition hover:border-rose-400/70"
-                                                    :class="seats.includes('{{ $seat }}') ? 'border-rose-300 bg-rose-400/30 text-white shadow-[0_0_12px_rgba(244,63,94,0.35)]' : ''"
+                                                    class="rounded-md border border-white/40 bg-white/90 px-2 py-1.5 text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
+                                                    :class="seats.includes('{{ $seat }}') ? '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]' : ''"
                                                     @click="toggleSeat('{{ $seat }}')">
                                                     {{ $seat }}
                                                 </button>
@@ -260,8 +260,8 @@
                                             @foreach ($boxRight as $col)
                                                 @php($seat = $row.$col)
                                                 <button type="button"
-                                                    class="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1.5 text-[10px] font-semibold text-rose-100 transition hover:border-rose-400/70"
-                                                    :class="seats.includes('{{ $seat }}') ? 'border-rose-300 bg-rose-400/30 text-white shadow-[0_0_12px_rgba(244,63,94,0.35)]' : ''"
+                                                    class="rounded-md border border-white/40 bg-white/90 px-2 py-1.5 text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
+                                                    :class="seats.includes('{{ $seat }}') ? '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]' : ''"
                                                     @click="toggleSeat('{{ $seat }}')">
                                                     {{ $seat }}
                                                 </button>
