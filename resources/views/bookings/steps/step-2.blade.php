@@ -1,5 +1,5 @@
 <!-- Step 2 -->
-<div x-show="step === 2" x-transition.opacity.duration.300>
+<div x-show="step === 2" x-cloak x-transition.opacity.duration.300>
     <h4 class="text-lg font-semibold text-white">Select Tickets</h4>
     <div class="mt-4 grid gap-4 sm:grid-cols-2">
         @forelse ($ticketTypes as $ticketType)
