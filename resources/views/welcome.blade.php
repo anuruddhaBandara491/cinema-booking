@@ -83,75 +83,85 @@
         </div>
     </section>
 
+
     <section class="bg-slate-950 py-14">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Now Showing</p>
-                    <h2 class="text-3xl font-semibold text-white">Top picks this week</h2>
+            <div x-data="{ tab: 'now' }">
+                <div class="flex items-center gap-8 mb-8">
+                    <button @click="tab = 'now'" :class="tab === 'now' ? 'text-white font-bold' : 'text-slate-400 font-semibold'" class="text-xl uppercase tracking-wider focus:outline-none relative">
+                        NOW SHOWING
+                        <span x-show="tab === 'now'" class="block mt-2 h-1 w-32 bg-rose-500 absolute left-0 bottom-[-8px]"></span>
+                    </button>
+                    <button @click="tab = 'soon'" :class="tab === 'soon' ? 'text-white font-bold' : 'text-slate-400 font-semibold'" class="text-xl uppercase tracking-wider focus:outline-none relative">
+                        COMING SOON
+                        <span x-show="tab === 'soon'" class="block mt-2 h-1 w-32 bg-rose-500 absolute left-0 bottom-[-8px]"></span>
+                    </button>
                 </div>
-                <div class="flex flex-col gap-3 text-right sm:items-end">
-                    <a href="{{ url('/movies') }}" class="text-sm text-rose-300 hover:text-rose-200">View full lineup →</a>
+                <div x-show="tab === 'now'">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Now Showing</p>
+                            <h2 class="text-3xl font-semibold text-white">Top picks this week</h2>
+                        </div>
+                        <div class="flex flex-col gap-3 text-right sm:items-end">
+                            <a href="{{ url('/movies') }}" class="text-sm text-rose-300 hover:text-rose-200">View full lineup →</a>
+                        </div>
+                    </div>
+                    @if ($nowShowing->isEmpty())
+                        <div class="mt-8 rounded-2xl border border-white/10 bg-canvas-muted p-10 text-center text-sm text-slate-400">
+                            No movies are showing right now. Check back soon.
+                        </div>
+                    @else
+                        <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            @foreach ($nowShowing as $movie)
+                                <x-movie-card
+                                    :title="$movie->title"
+                                    :start-date="optional($movie->show_start_date)->format('M d, Y')"
+                                    :end-date="optional($movie->show_end_date)->format('M d, Y')"
+                                    :times="$movie->show_times ?? []"
+                                    :image="$movie->cover_image_url"
+                                    :book-now="$movie->book_now"
+                                    tag="Now Showing"
+                                    cta-label="Book Now"
+                                    cta-href="{{ route('bookings.flow', $movie) }}"
+                                />
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                <div x-show="tab === 'soon'">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Upcoming</p>
+                            <h2 class="text-3xl font-semibold text-white">Coming soon</h2>
+                        </div>
+                        <div class="flex flex-col gap-3 text-right sm:items-end">
+                            <a href="{{ url('/movies') }}" class="text-sm text-rose-300 hover:text-rose-200">View full lineup →</a>
+                        </div>
+                    </div>
+                    @if ($upcoming->isEmpty())
+                        <div class="mt-8 rounded-2xl border border-white/10 bg-canvas-muted p-10 text-center text-sm text-slate-400">
+                            No upcoming movies yet. Check back soon.
+                        </div>
+                    @else
+                        <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            @foreach ($upcoming as $movie)
+                                <x-movie-card
+                                    :title="$movie->title"
+                                    :start-date="optional($movie->show_start_date)->format('M d, Y')"
+                                    :end-date="optional($movie->show_end_date)->format('M d, Y')"
+                                    :times="$movie->show_times ?? []"
+                                    :image="$movie->cover_image_url"
+                                    :book-now="$movie->book_now"
+                                    tag="Upcoming"
+                                    cta-label="View Details"
+                                    cta-href="{{ route('movies.index') }}"
+                                />
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
-
-            @if ($nowShowing->isEmpty())
-                <div class="mt-8 rounded-2xl border border-white/10 bg-canvas-muted p-10 text-center text-sm text-slate-400">
-                    No movies are showing right now. Check back soon.
-                </div>
-            @else
-                <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    @foreach ($nowShowing as $movie)
-                        <x-movie-card
-                            :title="$movie->title"
-                            :start-date="optional($movie->show_start_date)->format('M d, Y')"
-                            :end-date="optional($movie->show_end_date)->format('M d, Y')"
-                            :times="$movie->show_times ?? []"
-                            :image="$movie->cover_image_url"
-                            :book-now="$movie->book_now"
-                            tag="Now Showing"
-                            cta-label="Book Now"
-                            cta-href="{{ route('bookings.flow', $movie) }}"
-                        />
-                    @endforeach
-                </div>
-            @endif
-        </div>
-    </section>
-
-    <section class="bg-slate-950 pb-16">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Upcoming</p>
-                    <h2 class="text-3xl font-semibold text-white">Coming soon</h2>
-                </div>
-                <div class="flex flex-col gap-3 text-right sm:items-end">
-                    <a href="{{ url('/movies') }}" class="text-sm text-rose-300 hover:text-rose-200">View full lineup →</a>
-                </div>
-            </div>
-
-            @if ($upcoming->isEmpty())
-                <div class="mt-8 rounded-2xl border border-white/10 bg-canvas-muted p-10 text-center text-sm text-slate-400">
-                    No upcoming movies yet. Check back soon.
-                </div>
-            @else
-                <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    @foreach ($upcoming as $movie)
-                        <x-movie-card
-                            :title="$movie->title"
-                            :start-date="optional($movie->show_start_date)->format('M d, Y')"
-                            :end-date="optional($movie->show_end_date)->format('M d, Y')"
-                            :times="$movie->show_times ?? []"
-                            :image="$movie->cover_image_url"
-                            :book-now="$movie->book_now"
-                            tag="Upcoming"
-                            cta-label="View Details"
-                            cta-href="{{ route('movies.index') }}"
-                        />
-                    @endforeach
-                </div>
-            @endif
         </div>
     </section>
 </x-app-layout>
