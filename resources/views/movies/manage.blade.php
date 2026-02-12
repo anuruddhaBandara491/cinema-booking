@@ -23,10 +23,10 @@
             show_start_date: '',
             show_end_date: '',
             show_times: '',
-            booking_charge: '',
+            booking_charge: 35,
             booking_window_days: 3,
             status: 'draft',
-            book_now: false,
+            book_now: true,
         },
         openForm(payload) {
             this.mode = payload.mode || 'create';
@@ -54,10 +54,10 @@
                     show_start_date: '',
                     show_end_date: '',
                     show_times: '',
-                    booking_charge: '',
+                    booking_charge: 35,
                     booking_window_days: 3,
                     status: 'draft',
-                    book_now: false,
+                    book_now: true,
                 };
                 this.formAction = '{{ route('manager.movies.store') }}';
                 this.method = 'post';
@@ -138,13 +138,6 @@
                     <input type="hidden" name="is_upcoming" :value="form.status === 'upcoming' ? 1 : 0" />
 
                     <div>
-                        <label class="inline-flex items-center mt-2">
-                            <input type="checkbox" name="book_now" x-model="form.book_now" class="form-checkbox h-5 w-5 text-accent" />
-                            <span class="ml-2 text-xs uppercase tracking-[0.2em] text-slate-400">Enable Book Now button</span>
-                        </label>
-                    </div>
-
-                    <div>
                         <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Film Name</label>
                         <input type="text" name="title" x-model="form.title" required
                                class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
@@ -207,6 +200,12 @@
                                 Draft
                             </label>
                         </div>
+                    </div>
+                    <div>
+                        <label class="inline-flex items-center mt-2">
+                            <input type="checkbox" name="book_now" x-model="form.book_now" class="form-checkbox h-5 w-5 text-accent" />
+                            <span class="ml-2 text-xs uppercase tracking-[0.2em] text-slate-400">Enable Book Now button</span>
+                        </label>
                     </div>
 
                     <div class="flex justify-end gap-3">
