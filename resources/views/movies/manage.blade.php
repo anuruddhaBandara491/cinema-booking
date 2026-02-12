@@ -20,6 +20,8 @@
         form: {
             id: null,
             title: '',
+            category_id: '',
+            language_id: '',
             show_start_date: '',
             show_end_date: '',
             show_times: '',
@@ -37,6 +39,8 @@
                 this.form = {
                     id: payload.movie.id,
                     title: payload.movie.title,
+                    category_id: payload.movie.category_id || '',
+                    language_id: payload.movie.language_id || '',
                     show_start_date: payload.movie.show_start_date,
                     show_end_date: payload.movie.show_end_date,
                     show_times: (payload.movie.show_times || []).join(', '),
@@ -51,6 +55,8 @@
                 this.form = {
                     id: null,
                     title: '',
+                    category_id: '',
+                    language_id: '',
                     show_start_date: '',
                     show_end_date: '',
                     show_times: '',
@@ -82,6 +88,8 @@
                     $moviePayload = [
                         'id' => $movie->id,
                         'title' => $movie->title,
+                        'category_id' => $movie->category_id,
+                        'language_id' => $movie->language_id,
                         'show_start_date' => optional($movie->show_start_date)->toDateString(),
                         'show_end_date' => optional($movie->show_end_date)->toDateString(),
                         'show_times' => $movie->show_times ?? [],
@@ -142,8 +150,25 @@
                         <input type="text" name="title" x-model="form.title" required
                                class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
                     </div>
+                    <div>
+                        <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Category</label>
+                        <select name="category_id" x-model="form.category_id" required class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white">
+                            <option value="">Select Category</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                    <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Language</label>
+                        <select name="language_id" x-model="form.language_id" required class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white">
+                            <option value="">Select Language</option>
+                            @foreach ($languages as $language)
+                                <option value="{{ $language->id }}">{{ $language->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                         <div>
                             <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Start Date</label>
                             <input type="date" name="show_start_date" x-model="form.show_start_date" required

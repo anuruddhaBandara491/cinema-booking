@@ -22,7 +22,17 @@ class Movie extends Model
         'is_upcoming',
         'published_at',
         'book_now',
+        'category_id',
+        'language_id',
     ];
+        public function language()
+        {
+            return $this->belongsTo(Language::class);
+        }
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     protected $casts = [
         'show_start_date' => 'date',

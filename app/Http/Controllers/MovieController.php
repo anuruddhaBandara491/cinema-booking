@@ -30,11 +30,13 @@ class MovieController extends Controller
     public function manage(Request $request): View
     {
         $this->ensureManager($request);
-
         $movies = Movie::latest()->get();
-
+        $categories = \App\Models\Category::all();
+        $languages = \App\Models\Language::all();
         return view('movies.manage', [
             'movies' => $movies,
+            'categories' => $categories,
+            'languages' => $languages,
         ]);
     }
 
@@ -161,6 +163,8 @@ class MovieController extends Controller
             'is_upcoming' => ['nullable', 'boolean'],
             'status' => ['nullable', 'in:published,upcoming,draft'],
             'book_now' => ['nullable', 'in:true,false,on,0,1'],
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'language_id' => ['required', 'exists:languages,id'],
         ]);
     }
 
