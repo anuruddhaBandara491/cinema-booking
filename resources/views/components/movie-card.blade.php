@@ -43,7 +43,9 @@
             </div>
         @endif
         <div class="mt-4 flex items-center gap-3">
-            <a href="{{ $ctaHref }}" class="btn-ghost w-full text-center">{{ $ctaLabel }}</a>
+            @if (!isset($bookNow) || $bookNow)
+                <a href="{{ $ctaHref }}" class="btn-ghost w-full text-center">{{ $ctaLabel }}</a>
+            @endif
 
             @hasanyrole('manager|admin')
                 @if ($editAction)

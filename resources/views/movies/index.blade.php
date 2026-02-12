@@ -21,6 +21,7 @@
                         :times="$movie->show_times ?? []"
                         :tag="$movie->is_published ? 'Now Showing' : ($movie->is_upcoming ? 'Upcoming' : 'Draft')"
                         :image="$movie->cover_image_url"
+                        :book-now="$movie->book_now"
                         cta-label="Book Now"
                         cta-href="{{ route('bookings.flow', $movie) }}"
                     />

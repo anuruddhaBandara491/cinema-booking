@@ -26,6 +26,7 @@
             booking_charge: '',
             booking_window_days: 3,
             status: 'draft',
+            book_now: false,
         },
         openForm(payload) {
             this.mode = payload.mode || 'create';
@@ -42,6 +43,7 @@
                     booking_charge: payload.movie.booking_charge,
                     booking_window_days: payload.movie.booking_window_days ?? 3,
                     status,
+                    book_now: payload.movie.book_now ?? false,
                 };
                 this.formAction = payload.movie.update_url;
                 this.method = 'put';
@@ -55,6 +57,7 @@
                     booking_charge: '',
                     booking_window_days: 3,
                     status: 'draft',
+                    book_now: false,
                 };
                 this.formAction = '{{ route('manager.movies.store') }}';
                 this.method = 'post';
@@ -102,6 +105,7 @@
                         :times="$movie->show_times ?? []"
                         :tag="$movie->is_published ? 'Published' : ($movie->is_upcoming ? 'Upcoming' : 'Draft')"
                         :image="$movie->cover_image_url"
+                        :book-now="$movie->book_now"
                         cta-label="Book Now"
                         cta-href="{{ route('bookings.flow', $movie) }}"
                         edit-action="openForm({ mode: 'edit', movie })"
@@ -132,6 +136,13 @@
                     </template>
                     <input type="hidden" name="publish_immediately" :value="form.status === 'published' ? 1 : 0" />
                     <input type="hidden" name="is_upcoming" :value="form.status === 'upcoming' ? 1 : 0" />
+
+                    <div>
+                        <label class="inline-flex items-center mt-2">
+                            <input type="checkbox" name="book_now" x-model="form.book_now" class="form-checkbox h-5 w-5 text-accent" />
+                            <span class="ml-2 text-xs uppercase tracking-[0.2em] text-slate-400">Enable Book Now button</span>
+                        </label>
+                    </div>
 
                     <div>
                         <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Film Name</label>

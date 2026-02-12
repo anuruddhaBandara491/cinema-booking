@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Log;
 
 class MovieController extends Controller
 {
@@ -40,40 +41,47 @@ class MovieController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $this->ensureManager($request);
+        try {
+            $data = $this->validatedData($request);
 
-        $data = $this->validatedData($request);
+            $data['show_times'] = $this->parseTimes($data['show_times']);
+            $data['booking_window_days'] = $data['booking_window_days'] ?? 3;
 
-        $data['show_times'] = $this->parseTimes($data['show_times']);
-        $data['booking_window_days'] = $data['booking_window_days'] ?? 3;
+            if ($request->hasFile('cover_image')) {
+                $data['cover_image_path'] = $request->file('cover_image')->store('movies', 'public');
+            }
 
-        if ($request->hasFile('cover_image')) {
-            $data['cover_image_path'] = $request->file('cover_image')->store('movies', 'public');
+            if (! empty($data['publish_immediately'])) {
+                $data['is_published'] = true;
+                $data['published_at'] = now();
+            } else {
+                $data['is_published'] = false;
+                $data['published_at'] = null;
+            }
+
+            $data['is_upcoming'] = ! empty($data['is_upcoming']);
+
+            if ($data['is_published']) {
+                $data['is_upcoming'] = false;
+            }
+
+            if ($data['is_upcoming']) {
+                $data['is_published'] = false;
+                $data['published_at'] = null;
+            }
+
+            // Handle book_now checkbox
+            $data['book_now'] = !empty($request->input('book_now'));
+
+            unset($data['publish_immediately']);
+
+            Movie::create($data);
+
+            return redirect()->route('manager.movies.index')->with('status', 'Movie added.');
+        } catch (\Exception $e) {
+            Log::error('Failed to add movie', ['error' => $e->getMessage()]);
+            return redirect()->route('manager.movies.index')->with('error', 'Failed to add movie: ' . $e->getMessage());
         }
-
-        if (! empty($data['publish_immediately'])) {
-            $data['is_published'] = true;
-            $data['published_at'] = now();
-        } else {
-            $data['is_published'] = false;
-            $data['published_at'] = null;
-        }
-
-        $data['is_upcoming'] = ! empty($data['is_upcoming']);
-
-        if ($data['is_published']) {
-            $data['is_upcoming'] = false;
-        }
-
-        if ($data['is_upcoming']) {
-            $data['is_published'] = false;
-            $data['published_at'] = null;
-        }
-
-        unset($data['publish_immediately']);
-
-        Movie::create($data);
-
-        return redirect()->route('manager.movies.index')->with('status', 'Movie added.');
     }
 
     public function update(Request $request, Movie $movie): RedirectResponse
@@ -110,6 +118,9 @@ class MovieController extends Controller
             $data['is_published'] = false;
             $data['published_at'] = null;
         }
+
+        // Handle book_now checkbox
+        $data['book_now'] = !empty($request->input('book_now'));
 
         unset($data['publish_immediately']);
 
@@ -149,6 +160,7 @@ class MovieController extends Controller
             'publish_immediately' => ['nullable', 'boolean'],
             'is_upcoming' => ['nullable', 'boolean'],
             'status' => ['nullable', 'in:published,upcoming,draft'],
+            'book_now' => ['nullable', 'in:true,false,on,0,1'],
         ]);
     }
 

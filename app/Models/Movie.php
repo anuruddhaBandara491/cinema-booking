@@ -21,6 +21,7 @@ class Movie extends Model
         'is_published',
         'is_upcoming',
         'published_at',
+        'book_now',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class Movie extends Model
         'is_published' => 'boolean',
         'is_upcoming' => 'boolean',
         'published_at' => 'datetime',
+        'book_now' => 'boolean',
     ];
 
     public function getCoverImageUrlAttribute(): ?string
