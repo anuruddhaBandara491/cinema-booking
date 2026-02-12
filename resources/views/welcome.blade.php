@@ -1,27 +1,78 @@
 <x-app-layout>
-    <section class="relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-950 to-rose-950"></div>
-        <div class="absolute right-0 top-0 h-72 w-72 -translate-y-24 translate-x-24 rounded-full bg-rose-500/30 blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 h-72 w-72 translate-y-24 -translate-x-24 rounded-full bg-amber-400/20 blur-3xl"></div>
-
-        <div class="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-2 lg:items-center lg:px-8">
-            <div class="space-y-6">
-                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-rose-300">Cinema booking</p>
-                <h1 class="text-4xl font-semibold sm:text-5xl lg:text-6xl">
-                    Feel every story <span class="text-rose-400">on the big screen</span>.
-                </h1>
-                <p class="text-base text-slate-300 sm:text-lg">
-                    Discover premium cinema experiences, curated movie lineups, and seamless bookings with a bold, immersive interface.
-                </p>
-                <div class="flex flex-wrap gap-4">
-                    <a href="{{ url('/movies') }}" class="btn-primary">Browse Movies</a>
-                    @guest
-                        <a href="{{ route('auth.login') }}" class="btn-ghost">Login</a>
-                    @endguest
+    @php
+        $sliderImages = \App\Models\SliderImage::orderBy('order')->get();
+        $sliderSlides = $sliderImages->map(function($img) {
+            return [
+                'image' => asset('storage/' . $img->image_path),
+                'title' => $img->title,
+                'subtitle' => $img->subtitle,
+            ];
+        })->values();
+    @endphp
+    <section
+        x-data="sliderComponent({{ $sliderSlides->toJson() }})"
+        x-init="start()"
+        @mouseenter="stop()" @mouseleave="start()"
+        class="relative w-full h-[500px] md:h-[800px] overflow-hidden mb-10 rounded-2xl shadow-lg"
+    >
+            <script>
+            function sliderComponent(slides) {
+                return {
+                    slides: slides,
+                    active: 0,
+                    interval: null,
+                    start() {
+                        if (this.slides.length > 1) {
+                            this.interval = setInterval(() => this.next(), 4000)
+                        }
+                    },
+                    stop() { if (this.interval) clearInterval(this.interval) },
+                    next() { if (this.slides.length) this.active = (this.active + 1) % this.slides.length },
+                    prev() { if (this.slides.length) this.active = (this.active - 1 + this.slides.length) % this.slides.length }
+                }
+            }
+            </script>
+        <template x-if="slides.length === 0">
+            <div class=\"flex items-center justify-center h-full text-white text-xl\">No slider images available.</div>
+        </template>
+        <!-- Slides -->
+        <template x-for="(slide, i) in slides" :key="i">
+            <div
+                x-show="active === i"
+                x-transition:enter="transition-opacity duration-700"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition-opacity duration-700"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="absolute inset-0 w-full h-full"
+            >
+                <img :src="slide.image" alt="" class="w-full h-full object-cover object-center" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                <div class="absolute left-10 bottom-10 text-white space-y-2">
+                    <h2 class="text-3xl md:text-5xl font-bold" x-text="slide.title"></h2>
+                    <p class="text-lg md:text-2xl" x-text="slide.subtitle"></p>
                 </div>
-
             </div>
+        </template>
 
+        <!-- Controls -->
+        <button @click="prev" class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white rounded-full p-2" x-show="slides.length > 1">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button @click="next" class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white rounded-full p-2" x-show="slides.length > 1">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <!-- Dots -->
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2" x-show="slides.length > 1">
+            <template x-for="(slide, i) in slides" :key="i">
+                <button
+                    @click="active = i"
+                    :class="{'bg-white': active === i, 'bg-white/50': active !== i}"
+                    class="w-3 h-3 rounded-full transition-all"
+                ></button>
+            </template>
         </div>
     </section>
 

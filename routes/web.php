@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SliderImageController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketTypeController;
@@ -63,6 +64,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::middleware(['role:manager|admin'])->group(function () {
+    Route::get('slider/manage', [SliderImageController::class, 'index'])->name('slider.manage');
+    Route::get('slider/create', [SliderImageController::class, 'create'])->name('slider.create');
+    Route::post('slider/store', [SliderImageController::class, 'store'])->name('slider.store');
+    Route::delete('slider/{sliderImage}', [SliderImageController::class, 'destroy'])->name('slider.destroy');
 });
+
+    });
 
 require __DIR__.'/auth.php';
