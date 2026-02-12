@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('title')->nullable();
             $table->string('subtitle')->nullable();
+            $table->string('trailer_url')->nullable();
             $table->string('image_path');
             $table->integer('order')->default(0);
             $table->timestamps();

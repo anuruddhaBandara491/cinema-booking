@@ -2,10 +2,13 @@
     @php
         $sliderImages = \App\Models\SliderImage::orderBy('order')->get();
         $sliderSlides = $sliderImages->map(function($img) {
+            $movie = \App\Models\Movie::where('title', $img->title)->first();
             return [
                 'image' => asset('storage/' . $img->image_path),
                 'title' => $img->title,
                 'subtitle' => $img->subtitle,
+                'buy_ticket_url' => ($movie && $movie->book_now) ? route('bookings.flow', $movie) : null,
+                'trailer_url' => $img->trailer_url ?? '#',
             ];
         })->values();
     @endphp
@@ -47,11 +50,15 @@
                 x-transition:leave-end="opacity-0"
                 class="absolute inset-0 w-full h-full"
             >
-                <img :src="slide.image" alt="" class="w-full h-full object-cover object-center" />
+                <img :src="slide.image" alt="" class="w-full h-full object-contain object-center" />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
                 <div class="absolute left-10 bottom-10 text-white space-y-2">
                     <h2 class="text-3xl md:text-5xl font-bold" x-text="slide.title"></h2>
                     <p class="text-lg md:text-2xl" x-text="slide.subtitle"></p>
+                    <div class="mt-6 flex gap-4">
+                        <a :href="slide.trailer_url" target="_blank" class="px-6 py-3 rounded bg-black/60 hover:bg-black/80 text-white font-semibold text-lg">Watch Trailer</a>
+
+                    </div>
                 </div>
             </div>
         </template>
@@ -101,6 +108,7 @@
                             :end-date="optional($movie->show_end_date)->format('M d, Y')"
                             :times="$movie->show_times ?? []"
                             :image="$movie->cover_image_url"
+                            :book-now="$movie->book_now"
                             tag="Now Showing"
                             cta-label="Book Now"
                             cta-href="{{ route('bookings.flow', $movie) }}"
@@ -136,6 +144,7 @@
                             :end-date="optional($movie->show_end_date)->format('M d, Y')"
                             :times="$movie->show_times ?? []"
                             :image="$movie->cover_image_url"
+                            :book-now="$movie->book_now"
                             tag="Upcoming"
                             cta-label="View Details"
                             cta-href="{{ route('movies.index') }}"

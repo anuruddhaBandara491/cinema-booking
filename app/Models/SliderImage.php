@@ -14,5 +14,6 @@ class SliderImage extends Model
         'subtitle',
         'image_path',
         'order',
+        'trailer_url',
     ];
 }

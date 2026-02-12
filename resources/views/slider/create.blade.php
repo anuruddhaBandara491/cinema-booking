@@ -13,6 +13,10 @@
                     <input type="text" name="subtitle" class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
                 </div>
                 <div>
+                    <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Trailer Link</label>
+                    <input type="url" name="trailer_url" class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" placeholder="https://youtube.com/..." />
+                </div>
+                <div>
                     <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Image <span class="text-red-500">*</span></label>
                     <input type="file" name="image" required class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
                 </div>

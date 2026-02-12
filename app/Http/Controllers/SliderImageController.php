@@ -29,6 +29,7 @@ class SliderImageController extends Controller
         $data = $request->validate([
             'title' => ['nullable', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
+            'trailer_url' => ['nullable', 'url'],
             'image' => ['required', 'image', 'max:2048'],
             'order' => ['nullable', 'integer'],
         ]);
