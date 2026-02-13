@@ -42,8 +42,8 @@
                 <a href="{{ url('/bookings') }}" class="text-sm font-medium text-slate-200 hover:text-white">My Bookings</a>
             @endauth
 
-            @if ($user->hasAnyRole(['manager', 'admin']))
-                <a href="{{ url('/slider/manage') }}" class="text-sm font-medium text-slate-200 hover:text-white">Slider Images</a>
+            @if ($isManager || $isAdmin)
+                <a href="{{ url('/slider/manage') }}" class="text-sm font-medium text-slate-200 hover:text-white">Slide Images</a>
                 <a href="{{ url('/manager/reports') }}" class="text-sm font-medium text-slate-200 hover:text-white">Reports</a>
             @endif
 
