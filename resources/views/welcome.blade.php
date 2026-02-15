@@ -16,7 +16,7 @@
         x-data="sliderComponent({{ $sliderSlides->toJson() }})"
         x-init="start()"
         @mouseenter="stop()" @mouseleave="start()"
-        class="relative w-full h-[500px] md:h-[800px] overflow-hidden mb-10 rounded-2xl shadow-lg"
+        class="relative w-full h-[40vh] md:h-[70vh] max-h-[350px] md:max-h-[700px] bg-black overflow-hidden rounded-2xl shadow-lg"
     >
             <script>
             function sliderComponent(slides) {
@@ -54,10 +54,8 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
                 <div class="absolute left-10 bottom-10 text-white space-y-2">
                     <h2 class="text-3xl md:text-5xl font-bold" x-text="slide.title"></h2>
-                    <p class="text-lg md:text-2xl" x-text="slide.subtitle"></p>
                     <div class="mt-6 flex gap-4">
                         <a :href="slide.trailer_url" target="_blank" class="px-6 py-3 rounded bg-black/60 hover:bg-black/80 text-white font-semibold text-lg">Watch Trailer</a>
-
                     </div>
                 </div>
             </div>
@@ -83,8 +81,7 @@
         </div>
     </section>
 
-
-    <section class="bg-slate-950 py-14">
+    <section class="bg-slate-950 py-8">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div x-data="{ tab: 'now' }">
                 <div class="flex items-center gap-8 mb-8">
