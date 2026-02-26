@@ -102,7 +102,7 @@
                     </div>
                     <div class="flex items-center justify-between pt-3 border-t border-white/10">
                         <p class="text-slate-300">Status</p>
-                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold" 
+                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
                             :class="'{{ $booking->payment_status }}' === 'pending' ? 'bg-yellow-500/20 text-yellow-300' : 'bg-emerald-500/20 text-emerald-300'">
                             {{ ucfirst($booking->payment_status) }}
                         </span>
@@ -124,7 +124,7 @@
         <!-- Important Notice -->
         <div class="mt-8 rounded-2xl border border-white/10 bg-canvas-muted p-6">
             <p class="text-sm text-slate-300">
-                <strong class="text-white">Important:</strong> Please save your booking reference <strong>{{ $booking->booking_reference }}</strong> for future reference. 
+                <strong class="text-white">Important:</strong> Please save your booking reference <strong>{{ $booking->booking_reference }}</strong> for future reference.
                 You will need it to retrieve your booking details. A confirmation has been sent to your phone number.
             </p>
         </div>
