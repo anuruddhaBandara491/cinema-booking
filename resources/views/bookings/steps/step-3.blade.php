@@ -1,5 +1,5 @@
-<!-- Step 3 -->
-<div x-show="step === 3" x-cloak x-transition.opacity.duration.300>
+<!-- Step 4 -->
+<div x-show="step === 4" x-cloak x-transition.opacity.duration.300>
     @php
         $odcRows = ['A', 'B', 'C', 'D', 'E', 'F'];
         $odcColsMap = collect($odcRows)

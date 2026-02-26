@@ -9,14 +9,14 @@ export default defineConfig({
         }),
     ],
     server: {
-        host: 'cinema.local',
+        host: '127.0.0.1',
         port: 5173,
         strictPort: true,
         cors: {
-            origin: 'http://cinema.local',
+            origin: 'http://127.0.0.1:8000',
         },
         hmr: {
-            host: 'cinema.local',
+            host: '127.0.0.1',
         },
     },
 });

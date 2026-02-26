@@ -1,5 +1,5 @@
-<!-- Step 4 -->
-<div x-show="step === 4" x-cloak x-transition.opacity.duration.300>
+<!-- Step 5 -->
+<div x-show="step === 5" x-cloak x-transition.opacity.duration.300>
     <h4 class="text-lg font-semibold text-white">Payment</h4>
     <div class="mt-4 grid gap-4 lg:grid-cols-2">
         <div class="rounded-2xl border border-white/10 bg-canvas-muted p-5">

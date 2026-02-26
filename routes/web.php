@@ -4,6 +4,7 @@ use App\Http\Controllers\SliderImageController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketTypeController;
+use App\Http\Controllers\BookingController;
 use App\Models\Movie;
 use App\Models\TicketType;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,10 @@ Route::get('/bookings/flow/{movie}', function (Movie $movie) {
         'ticketTypes' => $ticketTypes,
     ]);
 })->name('bookings.flow');
+
+Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+Route::get('/bookings/{booking}/confirmation', [BookingController::class, 'confirmation'])->name('bookings.confirmation');
+Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/manager/movies', [MovieController::class, 'manage'])
