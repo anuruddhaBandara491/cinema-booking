@@ -26,11 +26,11 @@ Route::get('/', function () {
         'nowShowing' => $nowShowing,
         'upcoming' => $upcoming,
     ]);
-});
+})->name('dashboard');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/movies', [MovieController::class, 'index'])->name('movies.index');
 

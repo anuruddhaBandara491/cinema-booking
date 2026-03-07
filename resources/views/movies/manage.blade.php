@@ -128,16 +128,24 @@
         </div>
 
         <x-modal name="movie-form" maxWidth="2xl" focusable>
-            <div class="bg-slate-950 p-6">
-                <div class="flex items-center justify-between">
+            <div class="bg-slate-900 p-8 rounded-2xl">
+
+                {{-- Header --}}
+                <div class="flex items-start justify-between mb-8">
                     <div>
-                        <p class="text-xs uppercase tracking-[0.2em] text-slate-400" x-text="mode === 'create' ? 'Add movie' : 'Edit movie'"></p>
-                        <h3 class="text-xl font-semibold text-white" x-text="mode === 'create' ? 'Create a new listing' : 'Update movie details'"></h3>
+                        <p class="text-[10px] uppercase tracking-[0.3em] text-slate-500 mb-1"
+                        x-text="mode === 'create' ? 'Add movie' : 'Edit movie'"></p>
+                        <h3 class="text-2xl font-semibold text-white"
+                            x-text="mode === 'create' ? 'Create a new listing' : 'Update movie details'"></h3>
                     </div>
-                    <button class="text-slate-400 hover:text-white" x-on:click="$dispatch('close-modal', 'movie-form')">✕</button>
+                    <button
+                        class="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-400 transition hover:bg-slate-700 hover:text-white"
+                        x-on:click="$dispatch('close-modal', 'movie-form')">
+                        ✕
+                    </button>
                 </div>
 
-                <form class="mt-6 space-y-4" method="POST" :action="formAction" enctype="multipart/form-data">
+                <form class="space-y-5" method="POST" :action="formAction" enctype="multipart/form-data">
                     @csrf
                     <template x-if="method === 'put'">
                         <input type="hidden" name="_method" value="PUT" />
@@ -145,97 +153,148 @@
                     <input type="hidden" name="publish_immediately" :value="form.status === 'published' ? 1 : 0" />
                     <input type="hidden" name="is_upcoming" :value="form.status === 'upcoming' ? 1 : 0" />
 
+                    {{-- Film Name --}}
                     <div>
-                        <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Film Name</label>
+                        <label class="block text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-2">Film Name</label>
                         <input type="text" name="title" x-model="form.title" required
-                               class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
-                    </div>
-                    <div>
-                        <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Category</label>
-                        <select name="category_id" x-model="form.category_id" required class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white">
-                            <option value="">Select Category</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->name }}</option>
-                            @endforeach
-                        </select>
+                            placeholder="Enter film title"
+                            class="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white placeholder-slate-600 transition focus:border-rose-500/50 focus:outline-none focus:ring-1 focus:ring-rose-500/30" />
                     </div>
 
-                    <div>
-                        <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Language</label>
-                        <select name="language_id" x-model="form.language_id" required class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white">
-                            <option value="">Select Language</option>
-                            @foreach ($languages as $language)
-                                <option value="{{ $language->id }}">{{ $language->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                        <div>
-                            <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Start Date</label>
-                            <input type="date" name="show_start_date" x-model="form.show_start_date" required
-                                   class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
-                        </div>
-                        <div>
-                            <label class="text-xs uppercase tracking-[0.2em] text-slate-400">End Date</label>
-                            <input type="date" name="show_end_date" x-model="form.show_end_date" required
-                                   class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Show Times (comma separated)</label>
-                        <input type="text" name="show_times" x-model="form.show_times" placeholder="2:00 PM, 10:00 PM" required
-                               class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
-                    </div>
-
-                    <div>
-                        <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Booking Window (days)</label>
-                        <input type="number" min="1" max="14" step="1" name="booking_window_days" x-model.number="form.booking_window_days" required
-                               class="mt-2 w-28 rounded-xl border border-white/10 bg-canvas-muted px-3 py-2 text-xs text-white" />
-                    </div>
-
+                    {{-- Category & Language --}}
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Booking Charge (LKR)</label>
-                            <input type="number" name="booking_charge" step="0.01" min="0" x-model="form.booking_charge" required
-                                   class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
+                            <label class="block text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-2">Category</label>
+                            <select name="category_id" x-model="form.category_id" required
+                                    class="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white transition focus:border-rose-500/50 focus:outline-none focus:ring-1 focus:ring-rose-500/30 appearance-none">
+                                <option value="" class="text-slate-500">Select Category</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div>
-                            <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Cover Image</label>
-                            <input type="file" name="cover_image" accept="image/*"
-                                   class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-xs text-white" />
+                            <label class="block text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-2">Language</label>
+                            <select name="language_id" x-model="form.language_id" required
+                                    class="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white transition focus:border-rose-500/50 focus:outline-none focus:ring-1 focus:ring-rose-500/30 appearance-none">
+                                <option value="" class="text-slate-500">Select Language</option>
+                                @foreach ($languages as $language)
+                                    <option value="{{ $language->id }}">{{ $language->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
-                    <div class="space-y-3">
-                        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Status</p>
+                    {{-- Start Date & End Date --}}
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-2">Start Date</label>
+                            <input type="date" name="show_start_date" x-model="form.show_start_date" required
+                                class="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white transition focus:border-rose-500/50 focus:outline-none focus:ring-1 focus:ring-rose-500/30" />
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-2">End Date</label>
+                            <input type="date" name="show_end_date" x-model="form.show_end_date" required
+                                class="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white transition focus:border-rose-500/50 focus:outline-none focus:ring-1 focus:ring-rose-500/30" />
+                        </div>
+                    </div>
+
+                    {{-- Show Times --}}
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-2">Show Times <span class="normal-case tracking-normal text-slate-500">(comma separated)</span></label>
+                        <input type="text" name="show_times" x-model="form.show_times"
+                            placeholder="e.g. 2:00 PM, 6:30 PM, 10:00 PM" required
+                            class="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white placeholder-slate-600 transition focus:border-rose-500/50 focus:outline-none focus:ring-1 focus:ring-rose-500/30" />
+                    </div>
+
+                    {{-- Booking Window, Booking Charge, Cover Image --}}
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-2">Booking Window <span class="normal-case tracking-normal text-slate-500">(days)</span></label>
+                            <input type="number" min="1" max="14" step="1" name="booking_window_days"
+                                x-model.number="form.booking_window_days" required
+                                class="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white transition focus:border-rose-500/50 focus:outline-none focus:ring-1 focus:ring-rose-500/30" />
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-2">Booking Charge <span class="normal-case tracking-normal text-slate-500">(LKR)</span></label>
+                            <input type="number" name="booking_charge" step="0.01" min="0"
+                                x-model="form.booking_charge" required
+                                class="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white transition focus:border-rose-500/50 focus:outline-none focus:ring-1 focus:ring-rose-500/30" />
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-2">Cover Image</label>
+                            <label class="flex w-full cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-slate-400 transition hover:border-rose-500/40 hover:text-slate-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span class="truncate text-xs" id="file-label">Choose file…</span>
+                                <input type="file" name="cover_image" accept="image/*" class="sr-only"
+                                    onchange="document.getElementById('file-label').textContent = this.files[0]?.name || 'Choose file…'" />
+                            </label>
+                        </div>
+                    </div>
+
+                    {{-- Status --}}
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-3">Status</p>
                         <div class="grid gap-3 sm:grid-cols-3">
-                            <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-xs text-slate-300">
-                                <input type="radio" name="status" value="published" x-model="form.status"
-                                       class="h-4 w-4 rounded-full border-white/20 bg-slate-900 text-rose-400" />
+                            <label class="group relative flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-xs transition"
+                                :class="form.status === 'published'
+                                    ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
+                                    : 'border-white/10 bg-slate-800 text-slate-400 hover:border-white/20 hover:text-slate-300'">
+                                <input type="radio" name="status" value="published" x-model="form.status" class="sr-only" />
+                                <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition"
+                                    :class="form.status === 'published' ? 'border-emerald-400 bg-emerald-400' : 'border-slate-600'">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-slate-900" x-show="form.status === 'published'"></span>
+                                </span>
                                 Now Showing
                             </label>
-                            <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-xs text-slate-300">
-                                <input type="radio" name="status" value="upcoming" x-model="form.status"
-                                       class="h-4 w-4 rounded-full border-white/20 bg-slate-900 text-amber-300" />
+                            <label class="group relative flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-xs transition"
+                                :class="form.status === 'upcoming'
+                                    ? 'border-amber-400/50 bg-amber-400/10 text-amber-300'
+                                    : 'border-white/10 bg-slate-800 text-slate-400 hover:border-white/20 hover:text-slate-300'">
+                                <input type="radio" name="status" value="upcoming" x-model="form.status" class="sr-only" />
+                                <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition"
+                                    :class="form.status === 'upcoming' ? 'border-amber-400 bg-amber-400' : 'border-slate-600'">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-slate-900" x-show="form.status === 'upcoming'"></span>
+                                </span>
                                 Upcoming
                             </label>
-                            <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-xs text-slate-300">
-                                <input type="radio" name="status" value="draft" x-model="form.status"
-                                       class="h-4 w-4 rounded-full border-white/20 bg-slate-900 text-slate-400" />
+                            <label class="group relative flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-xs transition"
+                                :class="form.status === 'draft'
+                                    ? 'border-slate-400/40 bg-slate-400/10 text-slate-300'
+                                    : 'border-white/10 bg-slate-800 text-slate-400 hover:border-white/20 hover:text-slate-300'">
+                                <input type="radio" name="status" value="draft" x-model="form.status" class="sr-only" />
+                                <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition"
+                                    :class="form.status === 'draft' ? 'border-slate-400 bg-slate-400' : 'border-slate-600'">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-slate-900" x-show="form.status === 'draft'"></span>
+                                </span>
                                 Draft
                             </label>
                         </div>
                     </div>
-                    <div>
-                        <label class="inline-flex items-center mt-2">
-                            <input type="checkbox" name="book_now" x-model="form.book_now" class="form-checkbox h-5 w-5 text-accent" />
-                            <span class="ml-2 text-xs uppercase tracking-[0.2em] text-slate-400">Enable Book Now button</span>
-                        </label>
-                    </div>
 
-                    <div class="flex justify-end gap-3">
+                    {{-- Enable Book Now --}}
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-slate-800 px-4 py-3 transition hover:border-white/20"
+                        :class="form.book_now ? 'border-rose-500/30 bg-rose-500/5' : ''">
+                        <span class="relative flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition"
+                            :class="form.book_now ? 'border-rose-500 bg-rose-500' : 'border-slate-600 bg-slate-700'">
+                            <svg x-show="form.book_now" class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <input type="checkbox" name="book_now" x-model="form.book_now" class="sr-only" />
+                        </span>
+                        <span class="text-xs uppercase tracking-[0.25em]"
+                            :class="form.book_now ? 'text-slate-300' : 'text-slate-400'">
+                            Enable Book Now Button
+                        </span>
+                    </label>
+
+                    {{-- Actions --}}
+                    <div class="flex justify-end gap-3 pt-2">
                         <button type="button" class="btn-ghost" x-on:click="$dispatch('close-modal', 'movie-form')">Cancel</button>
-                        <button class="btn-primary" type="submit" x-text="mode === 'create' ? 'Save Movie' : 'Save Changes'"></button>
+                        <button class="btn-primary" type="submit"
+                                x-text="mode === 'create' ? 'Save Movie' : 'Save Changes'"></button>
                     </div>
                 </form>
             </div>
