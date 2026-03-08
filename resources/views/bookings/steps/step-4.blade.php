@@ -1,6 +1,18 @@
 <!-- Step 5 -->
 <div x-show="step === 5" x-cloak x-transition.opacity.duration.300>
-    <h4 class="text-lg font-semibold text-white">Payment</h4>
+    <div class="flex items-center justify-between mb-6">
+        <h4 class="text-lg font-semibold text-white">Payment</h4>
+        <!-- Timer Display for Payment Step -->
+        <div x-show="getMaxLockTime() > 0" class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-900/50 to-amber-800/50 px-3 py-2 sm:px-4 sm:py-3 border border-amber-700/50">
+            <svg class="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
+            </svg>
+            <div>
+                <p class="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-amber-400">Seat Lock</p>
+                <p class="font-mono text-sm sm:text-base font-bold text-amber-100" x-text="formatTime(getMaxLockTime())"></p>
+            </div>
+        </div>
+    </div>
     <div class="mt-4 grid gap-4 lg:grid-cols-2">
         <div class="rounded-2xl border border-white/10 bg-canvas-muted p-5">
             <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Summary</p>

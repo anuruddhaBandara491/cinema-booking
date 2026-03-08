@@ -12,6 +12,17 @@
     <h4 class="text-lg font-semibold text-white">Select Seats</h4>
     <p class="mt-2 text-sm text-slate-400">Pick your preferred seats. Selected seats: <span class="text-white" x-text="seats.join(', ') || 'None'"></span></p>
 
+    <!-- Selected Seats List -->
+    <div x-show="seats.length > 0" class="mt-4 rounded-lg bg-slate-900/40 border border-slate-700/40 p-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+            <template x-for="seat in seats" :key="seat">
+                <div class="rounded bg-emerald-500/20 border border-emerald-500/50 px-3 py-2 text-center">
+                    <span class="font-semibold text-emerald-100" x-text="seat"></span>
+                </div>
+            </template>
+        </div>
+    </div>
+
     <div class="mt-4 flex flex-wrap gap-4 text-xs">
         <div class="flex items-center gap-2">
             <div class="h-4 w-4 rounded border border-white/40 bg-white/90"></div>

@@ -54,18 +54,41 @@
         sessionId: '',
         lockedSeats: [],
         bookedSeats: [],
+        globalLockTimer: 0, // Single global timer for all selected seats
+        timerInterval: null,
         pollingInterval: null,
         init() {
             this.initSessionId();
             this.startPolling();
+            this.startTimerUpdates();
         },
         destroy() {
             this.stopPolling();
+            this.stopTimerUpdates();
         },
         initSessionId() {
             // Generate unique session ID for this booking session
             this.sessionId = 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
             console.log('Session ID initialized:', this.sessionId);
+        },
+        startTimerUpdates() {
+            // Update global timer every second
+            this.timerInterval = setInterval(() => {
+                if (this.globalLockTimer > 0) {
+                    this.globalLockTimer--;
+                    if (this.globalLockTimer <= 0) {
+                        // Timer expired, clear all selected seats
+                        this.seats = [];
+                        console.log('Global lock timer expired. All seats deselected.');
+                    }
+                }
+            }, 1000);
+        },
+        stopTimerUpdates() {
+            if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+            }
         },
         startPolling() {
             // Poll for seat status every 3 seconds
@@ -90,7 +113,19 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        this.lockedSeats = data.locked.map(l => l.seat_number);
+                        // Update locked seats list
+                        const newLockedSeats = data.locked.map(l => l.seat_number);
+                        this.lockedSeats = newLockedSeats;
+                        
+                        // Update global timer if user has selected seats
+                        if (this.seats.length > 0 && data.locked.length > 0) {
+                            // Get the remaining time from any of the locked seats
+                            const firstLockedSeat = data.locked[0];
+                            if (firstLockedSeat && firstLockedSeat.remaining_seconds) {
+                                this.globalLockTimer = firstLockedSeat.remaining_seconds;
+                            }
+                        }
+                        
                         this.bookedSeats = data.booked;
                     }
                 })
@@ -202,6 +237,8 @@
             }
         },
         lockSeat(seat) {
+            const isFirstSeat = this.seats.length === 0;
+            
             fetch('/api/lock-seat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -220,6 +257,12 @@
                     // Remove from seats array if lock failed
                     this.seats = this.seats.filter(s => s !== seat);
                     alert(data.message);
+                } else {
+                    // Initialize global timer only on first seat selection
+                    if (isFirstSeat) {
+                        this.globalLockTimer = data.remaining_seconds || 300;
+                        console.log('First seat locked. Timer started:', this.globalLockTimer);
+                    }
                 }
             })
             .catch(err => console.error('Lock error:', err));
@@ -237,6 +280,15 @@
                 })
             })
             .catch(err => console.error('Release error:', err));
+        },
+        formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${String(secs).padStart(2, '0')}`;
+        },
+        getMaxLockTime() {
+            // Return the global lock timer
+            return this.globalLockTimer;
         },
         totalTickets() {
             return Object.values(this.tickets).reduce((sum, item) => {
@@ -335,8 +387,22 @@
             <div class="card-surface p-6 sm:p-8">
             <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Step <span x-text="step"></span> of <span x-text="maxStep"></span></p>
-                    <h3 class="text-xl font-semibold text-white">Book your seats</h3>
+                    <div class="flex items-center gap-4">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Step <span x-text="step"></span> of <span x-text="maxStep"></span></p>
+                            <h3 class="text-xl font-semibold text-white">Book your seats</h3>
+                        </div>
+                        <!-- Timer Display -->
+                        <div x-show="getMaxLockTime() > 0" class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-900/50 to-amber-800/50 px-3 py-2 sm:px-4 sm:py-3 border border-amber-700/50">
+                            <svg class="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
+                            </svg>
+                            <div>
+                                <p class="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-amber-400">Seat Lock</p>
+                                <p class="font-mono text-sm sm:text-base font-bold text-amber-100" x-text="formatTime(getMaxLockTime())"></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="w-full max-w-md">
                     <div class="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-400">
