@@ -38,10 +38,6 @@
             <a href="{{ url('/') }}" class="text-sm font-medium text-slate-200 hover:text-white">Home</a>
             <a href="{{ $isManager ? route('manager.movies.index') : route('movies.index') }}" class="text-sm font-medium text-slate-200 hover:text-white">Movies</a>
 
-            @auth
-                <a href="{{ url('/bookings') }}" class="text-sm font-medium text-slate-200 hover:text-white">My Bookings</a>
-            @endauth
-
             @if ($isManager || $isAdmin)
                 <a href="{{ url('/slider/manage') }}" class="text-sm font-medium text-slate-200 hover:text-white">Slide Images</a>
                 <a href="{{ url('/manager/reports') }}" class="text-sm font-medium text-slate-200 hover:text-white">Reports</a>
@@ -77,10 +73,6 @@
         <div class="flex flex-col gap-4">
             <a href="{{ url('/') }}" class="text-sm font-medium text-slate-200 hover:text-white">Home</a>
             <a href="{{ $isManager ? route('manager.movies.index') : route('movies.index') }}" class="text-sm font-medium text-slate-200 hover:text-white">Movies</a>
-
-            @auth
-                <a href="{{ url('/bookings') }}" class="text-sm font-medium text-slate-200 hover:text-white">My Bookings</a>
-            @endauth
 
             @if ($isManager)
                 <a href="{{ url('/manager/movies') }}" class="text-sm font-medium text-slate-200 hover:text-white">Manage Movies</a>
