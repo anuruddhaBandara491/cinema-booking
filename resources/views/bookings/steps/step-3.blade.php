@@ -12,6 +12,25 @@
     <h4 class="text-lg font-semibold text-white">Select Seats</h4>
     <p class="mt-2 text-sm text-slate-400">Pick your preferred seats. Selected seats: <span class="text-white" x-text="seats.join(', ') || 'None'"></span></p>
 
+    <div class="mt-4 flex flex-wrap gap-4 text-xs">
+        <div class="flex items-center gap-2">
+            <div class="h-4 w-4 rounded border border-white/40 bg-white/90"></div>
+            <span class="text-slate-400">Available</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="h-4 w-4 rounded border border-emerald-400 bg-emerald-400"></div>
+            <span class="text-slate-400">Selected</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="h-4 w-4 rounded border border-yellow-400 bg-yellow-400"></div>
+            <span class="text-slate-400">Locked</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="h-4 w-4 rounded border border-red-400 bg-red-400"></div>
+            <span class="text-slate-400">Booked</span>
+        </div>
+    </div>
+
     <div class="mt-6 rounded-3xl border border-white/10 bg-canvas-muted p-6">
         <div class="flex items-center justify-between text-[11px] uppercase tracking-[0.3em] text-slate-500">
             <span>Entrance</span>
@@ -34,8 +53,13 @@
                             @php($seat = $row.$col)
                             <button type="button"
                                 class="h-8 w-10 rounded-md border border-white/40 bg-white/90 text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
-                                :class="seats.includes('{{ $seat }}') ? '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]' : ''"
-                                @click="toggleSeat('{{ $seat }}')">
+                                :class="{
+                                    '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]': seats.includes('{{ $seat }}'),
+                                    '!border-red-400 !bg-red-400 !text-red-950 cursor-not-allowed': bookedSeats.includes('{{ $seat }}'),
+                                    '!border-yellow-400 !bg-yellow-400 !text-yellow-950 cursor-not-allowed': lockedSeats.includes('{{ $seat }}') && !seats.includes('{{ $seat }}')
+                                }"
+                                @click="toggleSeat('{{ $seat }}')"
+                                :disabled="bookedSeats.includes('{{ $seat }}') || (lockedSeats.includes('{{ $seat }}') && !seats.includes('{{ $seat }}'))">
                                 {{ $seat }}
                             </button>
                         @endforeach
@@ -58,8 +82,13 @@
                                 @php($seat = $row.$col)
                                 <button type="button"
                                     class="rounded-md border border-white/40 bg-white/90 px-2 py-1.5 text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
-                                    :class="seats.includes('{{ $seat }}') ? '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]' : ''"
-                                    @click="toggleSeat('{{ $seat }}')">
+                                    :class="{
+                                        '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]': seats.includes('{{ $seat }}'),
+                                        '!border-red-400 !bg-red-400 !text-red-950 cursor-not-allowed': bookedSeats.includes('{{ $seat }}'),
+                                        '!border-yellow-400 !bg-yellow-400 !text-yellow-950 cursor-not-allowed': lockedSeats.includes('{{ $seat }}') && !seats.includes('{{ $seat }}')
+                                    }"
+                                    @click="toggleSeat('{{ $seat }}')"
+                                    :disabled="bookedSeats.includes('{{ $seat }}') || (lockedSeats.includes('{{ $seat }}') && !seats.includes('{{ $seat }}'))">
                                     {{ $seat }}
                                 </button>
                             @endforeach
@@ -71,9 +100,14 @@
                             @foreach ($boxRight as $col)
                                 @php($seat = $row.$col)
                                 <button type="button"
-                                    class="rounded-md border border-white/40 bg-white/90 px-2 py-1.5 text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
-                                    :class="seats.includes('{{ $seat }}') ? '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]' : ''"
-                                    @click="toggleSeat('{{ $seat }}')">
+                                    class="rounded-md border border-white/40 bg-white/90 px-2 py-1.5 text[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
+                                    :class="{
+                                        '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]': seats.includes('{{ $seat }}'),
+                                        '!border-red-400 !bg-red-400 !text-red-950 cursor-not-allowed': bookedSeats.includes('{{ $seat }}'),
+                                        '!border-yellow-400 !bg-yellow-400 !text-yellow-950 cursor-not-allowed': lockedSeats.includes('{{ $seat }}') && !seats.includes('{{ $seat }}')
+                                    }"
+                                    @click="toggleSeat('{{ $seat }}')"
+                                    :disabled="bookedSeats.includes('{{ $seat }}') || (lockedSeats.includes('{{ $seat }}') && !seats.includes('{{ $seat }}'))">
                                     {{ $seat }}
                                 </button>
                             @endforeach

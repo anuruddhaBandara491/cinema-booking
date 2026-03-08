@@ -50,12 +50,133 @@
         boxTypeIds: @js($boxTypeIds),
         seats: [],
         paymentMethod: 'card',
+        movieId: {{ $movie->id }},
+        sessionId: '',
+        lockedSeats: [],
+        bookedSeats: [],
+        pollingInterval: null,
+        init() {
+            this.initSessionId();
+            this.startPolling();
+        },
+        destroy() {
+            this.stopPolling();
+        },
+        initSessionId() {
+            // Generate unique session ID for this booking session
+            this.sessionId = 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            console.log('Session ID initialized:', this.sessionId);
+        },
+        startPolling() {
+            // Poll for seat status every 3 seconds
+            this.pollingInterval = setInterval(() => {
+                this.updateSeatStatus();
+            }, 3000);
+        },
+        stopPolling() {
+            if (this.pollingInterval) {
+                clearInterval(this.pollingInterval);
+                this.pollingInterval = null;
+            }
+        },
+        updateSeatStatus() {
+            const params = new URLSearchParams({
+                movie_id: this.movieId,
+                show_date: this.parseDate(this.selectedDate),
+                show_time: this.parseTime(this.selectedTime)
+            });
+
+            fetch(`/api/seats?${params}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        this.lockedSeats = data.locked.map(l => l.seat_number);
+                        this.bookedSeats = data.booked;
+                    }
+                })
+                .catch(err => console.error('Polling error:', err));
+        },
+        parseDate(dateStr) {
+            const today = new Date();
+            const year = today.getFullYear();
+
+            const parts = dateStr.split(', ');
+            if (parts.length === 2) {
+                const monthDay = parts[1];
+                const monthDayParts = monthDay.split(' ');
+                const monthStr = monthDayParts[0];
+                const day = monthDayParts[1];
+
+                const months = { 'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+                                 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12 };
+                const month = months[monthStr] || today.getMonth() + 1;
+
+                return `${year}-${String(month).padStart(2, '0')}-${day}`;
+            }
+
+            // Fallback: use today's date
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const dayNum = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${dayNum}`;
+        },
+        parseTime(timeStr) {
+            // Extract HH:MM format from timeStr
+            if (!timeStr) return '14:30';
+
+            // Remove spaces
+            timeStr = timeStr.trim();
+
+            
+            if (/^\d{1,2}:\d{2}(?:AM|PM|am|pm)$/.test(timeStr)) {
+                const isPM = /PM|pm/.test(timeStr);
+                const isAM = /AM|am/.test(timeStr);
+
+                // Remove AM/PM
+                const timeOnly = timeStr.replace(/AM|PM|am|pm/g, '');
+                const parts = timeOnly.split(':');
+                let hours = parseInt(parts[0], 10);
+                const minutes = parts[1];
+
+                // Convert to 24-hour format
+                if (isPM && hours !== 12) {
+                    hours += 12;
+                } else if (isAM && hours === 12) {
+                    hours = 0;
+                }
+
+                return `${String(hours).padStart(2, '0')}:${minutes}`;
+            }
+
+            // If it's already in HH:MM format, return as is
+            if (/^\d{1,2}:\d{2}$/.test(timeStr)) {
+                const parts = timeStr.split(':');
+                const hours = String(parts[0]).padStart(2, '0');
+                const minutes = String(parts[1]).padStart(2, '0');
+                return `${hours}:${minutes}`;
+            }
+
+            return timeStr;
+        },
         seatType(seat) {
             const row = seat?.toString().charAt(0).toUpperCase();
             return row === 'G' || row === 'H' ? 'box' : 'odc';
         },
         toggleSeat(seat) {
+            // Check if seat is already booked or locked by another user
+            if (this.bookedSeats.includes(seat)) {
+                alert('This seat is already booked.');
+                return;
+            }
+
+            const lockedByOther = this.lockedSeats.includes(seat) && !this.seats.includes(seat);
+            if (lockedByOther) {
+                alert('This seat is locked by another user.');
+                return;
+            }
+
             if (this.seats.includes(seat)) {
+                // Release the seat lock
+                this.releaseSeat(seat);
                 this.seats = this.seats.filter(s => s !== seat);
             } else {
                 const type = this.seatType(seat);
@@ -75,8 +196,47 @@
                     return;
                 }
 
+                // Lock the seat
+                this.lockSeat(seat);
                 this.seats.push(seat);
             }
+        },
+        lockSeat(seat) {
+            fetch('/api/lock-seat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    movie_id: this.movieId,
+                    show_date: this.parseDate(this.selectedDate),
+                    show_time: this.parseTime(this.selectedTime),
+                    seat_number: seat,
+                    session_id: this.sessionId
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error('Failed to lock seat:', data.message);
+                    // Remove from seats array if lock failed
+                    this.seats = this.seats.filter(s => s !== seat);
+                    alert(data.message);
+                }
+            })
+            .catch(err => console.error('Lock error:', err));
+        },
+        releaseSeat(seat) {
+            fetch('/api/release-seat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    movie_id: this.movieId,
+                    show_date: this.parseDate(this.selectedDate),
+                    show_time: this.parseTime(this.selectedTime),
+                    seat_number: seat,
+                    session_id: this.sessionId
+                })
+            })
+            .catch(err => console.error('Release error:', err));
         },
         totalTickets() {
             return Object.values(this.tickets).reduce((sum, item) => {
@@ -154,7 +314,7 @@
             }
             return true;
         }
-    }">
+    }" @init="init()" @destroy="destroy()">
         <form action="{{ route('bookings.store') }}" method="POST" @submit.prevent="step < maxStep ? step = Math.min(maxStep, step + 1) : $el.submit()" x-ref="bookingForm">
             @csrf
 
@@ -164,10 +324,11 @@
             <input type="hidden" name="customer_phone" x-model="userDetails.phoneNumber">
             <input type="hidden" name="customer_email" x-model="userDetails.email">
             <input type="hidden" name="customer_nic" x-model="userDetails.nic">
-            <input type="hidden" name="booking_date" x-model="selectedDate">
-            <input type="hidden" name="booking_time" x-model="selectedTime">
+            <input type="hidden" name="booking_date" :value="parseDate(selectedDate)">
+            <input type="hidden" name="booking_time" :value="parseTime(selectedTime)">
             <input type="hidden" name="selected_seats" :value="JSON.stringify(seats)">
             <input type="hidden" name="tickets" :value="JSON.stringify(tickets)">
+            <input type="hidden" name="session_id" x-model="sessionId">
             <input type="hidden" name="payment_method" x-model="paymentMethod">
             <input type="hidden" name="total_amount" :value="calculateTotal()">
 

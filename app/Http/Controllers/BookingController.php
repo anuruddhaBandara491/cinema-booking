@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Movie;
+use App\Services\SeatLockService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -11,6 +12,13 @@ use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
+    protected SeatLockService $seatLockService;
+
+    public function __construct(SeatLockService $seatLockService)
+    {
+        $this->seatLockService = $seatLockService;
+    }
+
     /**
      * Store a newly created booking in storage.
      */
@@ -29,11 +37,13 @@ class BookingController extends Controller
                 'selected_seats' => 'required|array|min:1',
                 'selected_seats.*' => 'string',
                 'tickets' => 'required|array',
+                'session_id' => 'required|string',
                 'total_amount' => 'required|numeric|min:0',
                 'payment_method' => 'required|in:card,wallet,cash',
             ]);
 
-            // Create the booking
+            // Create the booking with 'completed' payment status
+            // (In production, you'd verify payment before setting this)
             $booking = new Booking();
             $booking->movie_id = $validated['movie_id'];
             $booking->booking_reference = Booking::generateReference();
@@ -47,9 +57,12 @@ class BookingController extends Controller
             $booking->tickets = $validated['tickets'];
             $booking->total_amount = $validated['total_amount'];
             $booking->payment_method = $validated['payment_method'];
-            $booking->payment_status = 'pending';
+            $booking->payment_status = 'completed'; // Mark as completed
             $booking->booked_at = now();
             $booking->save();
+
+            // Release all locks for this session now that booking is confirmed
+            $this->seatLockService->releaseAllSessionLocks($validated['session_id']);
 
             return redirect()->route('bookings.confirmation', $booking)->with('success', 'Booking submitted successfully!');
         } catch (\Exception $e) {
