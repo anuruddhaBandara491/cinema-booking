@@ -77,9 +77,8 @@
                 if (this.globalLockTimer > 0) {
                     this.globalLockTimer--;
                     if (this.globalLockTimer <= 0) {
-                        // Timer expired, clear all selected seats
-                        this.seats = [];
-                        console.log('Global lock timer expired. All seats deselected.');
+                        // Timer expired, release all seats at once
+                        this.releaseAllLockedSeats();
                     }
                 }
             }, 1000);
@@ -280,6 +279,35 @@
                 })
             })
             .catch(err => console.error('Release error:', err));
+        },
+        releaseAllLockedSeats() {
+            // Release all seats at once when timer expires
+            if (this.seats.length === 0) {
+                return;
+            }
+
+            const seatsToRelease = [...this.seats];
+            
+            fetch('/api/release-all-seats', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: this.sessionId
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear all seats from the UI
+                    this.seats = [];
+                    this.globalLockTimer = 0;
+                    
+                    // Notify user
+                    alert(`Your seat locks have expired!\n\nSeats released: ${seatsToRelease.join(', ')}\n\nPlease select seats again to continue booking.`);
+                    console.log('All locked seats released due to timer expiry:', seatsToRelease);
+                }
+            })
+            .catch(err => console.error('Release all error:', err));
         },
         formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
