@@ -1,0 +1,250 @@
+/**
+ * Responsive Booking Floor - Mobile Friendly Styles
+ * 
+ * Optimizes seat layout and booking interface for mobile devices
+ */
+
+/* Mobile Seat Container - Allow horizontal scrolling on mobile */
+@media (max-width: 640px) {
+    .seat-grid-container {
+        padding: 0.75rem;
+    }
+
+    .theater-layout {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* ODC Seats - Responsive sizing */
+    .odc-seat-row {
+        display: inline-flex;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .seat-button {
+        min-width: 28px;
+        height: 28px;
+        font-size: 0.625rem;
+        padding: 0;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Box Seats - Responsive gap between left and right */
+    .box-seats-container {
+        gap: 0.5rem;
+    }
+
+    .box-left,
+    .box-right {
+        display: inline-flex;
+        gap: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .box-divider {
+        height: 1.5rem;
+        width: 0.375rem;
+        flex-shrink: 0;
+    }
+
+    /* Theater directions - Reduce spacing */
+    .theater-directions {
+        padding: 0.75rem;
+        gap: 1rem;
+    }
+
+    .theater-directions-text {
+        font-size: 0.625rem;
+        letter-spacing: 0.1em;
+    }
+
+    .theater-entrance,
+    .theater-exit {
+        height: 1rem;
+        width: 2rem;
+    }
+
+    .theater-screen {
+        height: 0.5rem;
+    }
+}
+
+/* Tablet devices */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .seat-button {
+        min-width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+    }
+
+    .theater-directions {
+        padding: 1rem;
+    }
+
+    .theater-directions-text {
+        font-size: 0.75rem;
+    }
+}
+
+/* Desktop devices */
+@media (min-width: 1025px) {
+    .seat-button {
+        min-width: 40px;
+        height: 40px;
+        font-size: 0.625rem;
+    }
+
+    .theater-directions {
+        padding: 1.5rem;
+    }
+
+    .theater-directions-text {
+        font-size: 0.6875rem;
+    }
+}
+
+/* Ensure selected seats list is responsive */
+.selected-seats-grid {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+}
+
+@media (max-width: 640px) {
+    .selected-seats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Ensure legend is responsive */
+.seat-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.75rem;
+}
+
+@media (max-width: 640px) {
+    .seat-legend {
+        gap: 0.75rem;
+        font-size: 0.625rem;
+    }
+
+    .legend-item {
+        min-width: fit-content;
+    }
+
+    .legend-color {
+        height: 1rem;
+        width: 1rem;
+    }
+}
+
+/* Booking form responsive */
+.booking-form-container {
+    display: grid;
+    gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+    .booking-form-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 1025px) {
+    .booking-form-container {
+        grid-template-columns: 2fr 1fr;
+    }
+}
+
+/* Ensure horizontal scroll works smoothly */
+.horizontal-scroll-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar {
+    height: 4px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.5);
+    border-radius: 4px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.7);
+}
+
+/* Touch-friendly button sizing */
+@media (hover: none) and (pointer: coarse) {
+    .seat-button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .btn-primary,
+    .btn-ghost {
+        min-height: 44px;
+        font-size: 1rem;
+    }
+}
+
+/* Prevent text selection on buttons */
+.seat-button {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* Box divider responsive height */
+.box-divider {
+    transition: height 0.3s ease;
+}
+
+@media (max-width: 640px) {
+    .box-divider {
+        height: 1.25rem;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    .box-divider {
+        height: 1.5rem;
+    }
+}
+
+@media (min-width: 1025px) {
+    .box-divider {
+        height: 2.5rem;
+    }
+}
+
+/* Ensure theater card adapts to screen size */
+.theater-card {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(15, 23, 42, 0.5);
+    padding: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 641px) {
+    .theater-card {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+}

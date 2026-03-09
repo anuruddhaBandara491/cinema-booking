@@ -202,60 +202,64 @@
                     </div>
 
                     <!-- Theater Directions -->
-                    <div class="mb-6 rounded-3xl border border-white/10 bg-canvas-muted p-6">
-                        <div class="flex items-center justify-between text-[11px] uppercase tracking-[0.3em] text-slate-500">
+                    <div class="mb-6 rounded-3xl border border-white/10 bg-canvas-muted p-3 sm:p-6">
+                        <div class="flex items-center justify-between text-[9px] sm:text-[11px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-500 px-2 sm:px-0">
                             <span>Entrance</span>
-                            <span>Theater Screen</span>
+                            <span class="hidden sm:inline">Theater Screen</span>
+                            <span class="sm:hidden">Screen</span>
                             <span>Exit</span>
                         </div>
 
-                        <div class="mt-3 flex items-center gap-4">
-                            <div class="h-6 w-10 rounded-md bg-slate-700/60"></div>
-                            <div class="h-3 flex-1 rounded-full bg-gradient-to-r from-slate-500/40 via-slate-400/40 to-slate-500/40"></div>
-                            <div class="h-6 w-10 rounded-md bg-slate-700/60"></div>
+                        <div class="mt-2 sm:mt-3 flex items-center gap-2 sm:gap-4 px-2 sm:px-0">
+                            <div class="h-4 w-8 sm:h-6 sm:w-10 rounded-md bg-slate-700/60 flex-shrink-0"></div>
+                            <div class="h-2 sm:h-3 flex-1 rounded-full bg-gradient-to-r from-slate-500/40 via-slate-400/40 to-slate-500/40"></div>
+                            <div class="h-4 w-8 sm:h-6 sm:w-10 rounded-md bg-slate-700/60 flex-shrink-0"></div>
                         </div>
 
-                        <!-- ODC Seats -->
-                        <div class="mt-6 grid gap-2">
-                            @foreach ($odcRows as $row)
-                                @php($cols = $odcColsMap[$row] ?? [])
-                                <div class="flex justify-center">
-                                    <div class="inline-grid gap-2" style="grid-template-columns: repeat({{ count($cols) }}, minmax(0, 1fr));">
-                                        @foreach ($cols as $col)
-                                            @php($seat = $row.$col)
-                                            <button type="button"
-                                                class="h-6 w-6 rounded-md border border-white/40 bg-white/90 text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
-                                                :class="{
-                                                    '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]': selectedSeats.includes('{{ $seat }}'),
-                                                    '!border-red-400 !bg-red-400 !text-red-950 cursor-not-allowed': bookedSeats.includes('{{ $seat }}'),
-                                                    '!border-yellow-400 !bg-yellow-400 !text-yellow-950 cursor-not-allowed': lockedSeats.includes('{{ $seat }}') && !selectedSeats.includes('{{ $seat }}')
-                                                }"
-                                                @click="toggleSeat('{{ $seat }}')"
-                                                :disabled="bookedSeats.includes('{{ $seat }}') || (lockedSeats.includes('{{ $seat }}') && !selectedSeats.includes('{{ $seat }}'))">
-                                                {{ $seat }}
-                                            </button>
-                                        @endforeach
-                                    </div>
+                        <!-- ODC Seats - Horizontal Scroll on Mobile -->
+                        <div class="mt-4 sm:mt-6 overflow-x-auto">
+                            <div class="inline-block min-w-full px-2 sm:px-0">
+                                <div class="flex flex-col gap-1 sm:gap-2">
+                                    @foreach ($odcRows as $row)
+                                        @php($cols = $odcColsMap[$row] ?? [])
+                                        <div class="flex justify-center">
+                                            <div class="inline-flex gap-0.5 sm:gap-1">
+                                                @foreach ($cols as $col)
+                                                    @php($seat = $row.$col)
+                                                    <button type="button"
+                                                        class="h-5 w-5 sm:h-8 sm:w-10 rounded-sm border border-white/40 bg-white/90 text-[6px] sm:text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70 flex items-center justify-center flex-shrink-0"
+                                                        :class="{
+                                                            '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]': selectedSeats.includes('{{ $seat }}'),
+                                                            '!border-red-400 !bg-red-400 !text-red-950 cursor-not-allowed': bookedSeats.includes('{{ $seat }}'),
+                                                            '!border-yellow-400 !bg-yellow-400 !text-yellow-950 cursor-not-allowed': lockedSeats.includes('{{ $seat }}') && !selectedSeats.includes('{{ $seat }}')
+                                                        }"
+                                                        @click="toggleSeat('{{ $seat }}')"
+                                                        :disabled="bookedSeats.includes('{{ $seat }}') || (lockedSeats.includes('{{ $seat }}') && !selectedSeats.includes('{{ $seat }}'))">
+                                                        {{ $seat }}
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
-                            @endforeach
+                            </div>
                         </div>
 
-                        <!-- Screen Divider -->
-                        <div class="mt-6 flex items-center justify-center">
-                            <span class="h-1 w-24 rounded-full bg-slate-500/40"></span>
+                        <div class="mt-3 sm:mt-4 flex items-center justify-center px-2 sm:px-0">
+                            <span class="h-1 w-12 sm:w-24 rounded-full bg-slate-500/40"></span>
                         </div>
 
                         <!-- Box Seats -->
-                        <div class="mt-5">
-                            <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Box</p>
-                            <div class="mt-3 grid gap-3">
+                        <div class="mt-3 sm:mt-5 px-2 sm:px-0">
+                            <p class="text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-400">Box</p>
+                            <div class="mt-2 sm:mt-3 flex flex-col gap-1 sm:gap-2">
                                 @foreach ($boxRows as $row)
-                                    <div class="flex items-center justify-center gap-6">
-                                        <div class="grid grid-cols-4 gap-2">
+                                    <div class="flex items-center justify-center gap-1 sm:gap-6">
+                                        <div class="inline-flex gap-0.5 sm:gap-2 flex-shrink-0">
                                             @foreach ($boxLeft as $col)
                                                 @php($seat = $row.$col)
                                                 <button type="button"
-                                                    class="rounded-md border border-white/40 bg-white/90 px-2 py-1.5 text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
+                                                    class="h-5 w-5 sm:h-8 sm:w-10 rounded-sm border border-white/40 bg-white/90 text-[6px] sm:text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70 flex items-center justify-center flex-shrink-0"
                                                     :class="{
                                                         '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]': selectedSeats.includes('{{ $seat }}'),
                                                         '!border-red-400 !bg-red-400 !text-red-950 cursor-not-allowed': bookedSeats.includes('{{ $seat }}'),
@@ -268,13 +272,13 @@
                                             @endforeach
                                         </div>
 
-                                        <div class="h-10 w-2 rounded-full bg-slate-500/40"></div>
+                                        <div class="h-4 sm:h-10 w-1 sm:w-2 rounded-full bg-slate-500/40 flex-shrink-0"></div>
 
-                                        <div class="grid grid-cols-4 gap-2">
+                                        <div class="inline-flex gap-0.5 sm:gap-2 flex-shrink-0">
                                             @foreach ($boxRight as $col)
                                                 @php($seat = $row.$col)
                                                 <button type="button"
-                                                    class="rounded-md border border-white/40 bg-white/90 px-2 py-1.5 text-[8px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
+                                                    class="h-5 w-5 sm:h-8 sm:w-10 rounded-sm border border-white/40 bg-white/90 text-[6px] sm:text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70 flex items-center justify-center flex-shrink-0"
                                                     :class="{
                                                         '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]': selectedSeats.includes('{{ $seat }}'),
                                                         '!border-red-400 !bg-red-400 !text-red-950 cursor-not-allowed': bookedSeats.includes('{{ $seat }}'),
