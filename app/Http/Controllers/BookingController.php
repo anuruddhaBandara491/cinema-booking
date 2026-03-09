@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Movie;
 use App\Services\SeatLockService;
+use App\Services\BookingFlowLogService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -14,10 +15,12 @@ use Illuminate\Support\Facades\Auth;
 class BookingController extends Controller
 {
     protected SeatLockService $seatLockService;
+    protected BookingFlowLogService $flowLogService;
 
-    public function __construct(SeatLockService $seatLockService)
+    public function __construct(SeatLockService $seatLockService, BookingFlowLogService $flowLogService)
     {
         $this->seatLockService = $seatLockService;
+        $this->flowLogService = $flowLogService;
     }
 
     /**
@@ -42,6 +45,19 @@ class BookingController extends Controller
                 'total_amount' => 'required|numeric|min:0',
                 'payment_method' => 'required|in:card,wallet,cash',
             ]);
+
+            // Log payment success
+            $this->flowLogService->logPaymentSuccess(
+                sessionId: $validated['session_id'],
+                movieId: (int)$validated['movie_id'],
+                showDate: $validated['booking_date'],
+                showTime: $validated['booking_time'],
+                selectedSeats: $validated['selected_seats'],
+                ticketCount: count($validated['selected_seats']),
+                userName: $validated['customer_name'],
+                phoneNumber: $validated['customer_phone'],
+                email: $validated['customer_email']
+            );
 
             // Create the booking with 'completed' payment status
             // (In production, you'd verify payment before setting this)
@@ -68,6 +84,23 @@ class BookingController extends Controller
             return redirect()->route('bookings.confirmation', $booking)->with('success', 'Booking submitted successfully!');
         } catch (\Exception $e) {
             Log::error('Booking creation failed: ' . $e->getMessage());
+
+            // Log payment failure
+            if (!empty($validated['session_id'])) {
+                $this->flowLogService->logPaymentFailure(
+                    sessionId: $validated['session_id'],
+                    errorMessage: $e->getMessage(),
+                    movieId: isset($validated['movie_id']) ? (int)$validated['movie_id'] : null,
+                    showDate: $validated['booking_date'] ?? null,
+                    showTime: $validated['booking_time'] ?? null,
+                    selectedSeats: $validated['selected_seats'] ?? null,
+                    ticketCount: isset($validated['selected_seats']) ? count($validated['selected_seats']) : null,
+                    userName: $validated['customer_name'] ?? null,
+                    phoneNumber: $validated['customer_phone'] ?? null,
+                    email: $validated['customer_email'] ?? null
+                );
+            }
+
             return back()->with('error', 'Failed to create booking: ' . $e->getMessage())->withInput();
         }
     }

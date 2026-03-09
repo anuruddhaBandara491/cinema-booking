@@ -5,6 +5,7 @@ use App\Http\Controllers\MovieController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketTypeController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\BookingFlowLogController;
 use App\Models\Movie;
 use App\Models\TicketType;
 use Illuminate\Support\Facades\Route;
@@ -79,6 +80,16 @@ Route::middleware('auth')->group(function () {
         // Counter Booking Routes
         Route::get('/counter-booking', [BookingController::class, 'counterBookingIndex'])->name('bookings.counter.index');
         Route::post('/counter-booking/book', [BookingController::class, 'counterBookingStore'])->name('bookings.counter.store');
+    });
+
+    // Admin-only booking flow logging routes
+    Route::middleware(['role:admin'])->group(function () {
+        Route::get('/admin/booking-flow-logs', [BookingFlowLogController::class, 'index'])->name('admin.booking-flow-logs.index');
+        Route::get('/admin/booking-flow-logs/session/{sessionId}', [BookingFlowLogController::class, 'sessionTimeline'])->name('admin.booking-flow-logs.timeline');
+        Route::get('/admin/booking-flow-logs/abandoned', [BookingFlowLogController::class, 'abandonedBookings'])->name('admin.booking-flow-logs.abandoned');
+        Route::get('/admin/booking-flow-logs/failed-payments', [BookingFlowLogController::class, 'failedPayments'])->name('admin.booking-flow-logs.failed-payments');
+        Route::get('/admin/booking-flow-logs/performance', [BookingFlowLogController::class, 'performanceMetrics'])->name('admin.booking-flow-logs.performance');
+        Route::get('/api/admin/booking-flow-logs/datatable', [BookingFlowLogController::class, 'datatable'])->name('api.booking-flow-logs.datatable');
     });
 
 });

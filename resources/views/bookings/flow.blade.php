@@ -71,6 +71,27 @@
             this.sessionId = 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
             console.log('Session ID initialized:', this.sessionId);
         },
+        async logBookingEvent(event, data = {}) {
+            try {
+                const response = await fetch(`/api/log/${event}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        session_id: this.sessionId,
+                        ...data
+                    })
+                });
+
+                if (!response.ok) {
+                    console.warn(`Failed to log ${event}:`, response.statusText);
+                }
+            } catch (error) {
+                console.error(`Error logging ${event}:`, error);
+            }
+        },
         startTimerUpdates() {
             // Update global timer every second
             this.timerInterval = setInterval(() => {
@@ -412,6 +433,23 @@
             <input type="hidden" name="payment_method" x-model="paymentMethod">
             <input type="hidden" name="total_amount" :value="calculateTotal()">
 
+            <!-- Handle step transitions with logging -->
+            <script>
+                function handleStepTransition(currentStep, nextStep, data) {
+                    const stepActions = {
+                        1: () => Alpine.$data(document.querySelector('[x-data*="step"]')).logBookingEvent('user-details', data),
+                        2: () => Alpine.$data(document.querySelector('[x-data*="step"]')).logBookingEvent('movie-selection', data),
+                        3: () => Alpine.$data(document.querySelector('[x-data*="step"]')).logBookingEvent('ticket-count', data),
+                        4: () => Alpine.$data(document.querySelector('[x-data*="step"]')).logBookingEvent('seat-selection', data),
+                        5: () => Alpine.$data(document.querySelector('[x-data*="step"]')).logBookingEvent('payment-attempt', data)
+                    };
+
+                    if (stepActions[nextStep]) {
+                        stepActions[nextStep]();
+                    }
+                }
+            </script>
+
             <div class="card-surface p-6 sm:p-8">
             <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -461,8 +499,66 @@
             <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <!-- Mobile: Next button first (full width) -->
                 <div class="order-first sm:order-none w-full sm:w-auto flex flex-col gap-2 sm:gap-0 sm:hidden">
-                    <button type="button" class="btn-ghost w-full" @click="showErrors = true; canContinue() ? step = Math.min(maxStep, step + 1) : null" x-show="step < maxStep">Next</button>
-                    <button type="submit" class="btn-primary w-full" :disabled="!canContinue() || step !== maxStep" x-show="step === maxStep">Confirm Booking</button>
+                    <button type="button" class="btn-ghost w-full" @click="
+                        showErrors = true;
+                        if (canContinue()) {
+                            const currentStep = step;
+                            const nextStep = Math.min(maxStep, step + 1);
+
+                            // Log based on current step
+                            if (currentStep === 1) {
+                                logBookingEvent('user-details', {
+                                    user_name: userDetails.name,
+                                    phone_number: userDetails.phoneNumber,
+                                    email: userDetails.email
+                                });
+                            } else if (currentStep === 2) {
+                                logBookingEvent('movie-selection', {
+                                    movie_id: movieId,
+                                    show_date: parseDate(selectedDate),
+                                    show_time: parseTime(selectedTime),
+                                    user_name: userDetails.name,
+                                    phone_number: userDetails.phoneNumber,
+                                    email: userDetails.email
+                                });
+                            } else if (currentStep === 3) {
+                                logBookingEvent('ticket-count', {
+                                    ticket_count: totalTickets(),
+                                    movie_id: movieId,
+                                    show_date: parseDate(selectedDate),
+                                    show_time: parseTime(selectedTime),
+                                    user_name: userDetails.name,
+                                    phone_number: userDetails.phoneNumber,
+                                    email: userDetails.email
+                                });
+                            } else if (currentStep === 4) {
+                                logBookingEvent('seat-selection', {
+                                    selected_seats: seats,
+                                    movie_id: movieId,
+                                    show_date: parseDate(selectedDate),
+                                    show_time: parseTime(selectedTime),
+                                    ticket_count: totalTickets(),
+                                    user_name: userDetails.name,
+                                    phone_number: userDetails.phoneNumber,
+                                    email: userDetails.email
+                                });
+                            }
+
+                            step = nextStep;
+                        }
+                    " x-show="step < maxStep">Next</button>
+                    <button type="submit" class="btn-primary w-full" :disabled="!canContinue() || step !== maxStep" @click="
+                        logBookingEvent('payment-attempt', {
+                            movie_id: movieId,
+                            show_date: parseDate(selectedDate),
+                            show_time: parseTime(selectedTime),
+                            selected_seats: seats,
+                            ticket_count: totalTickets(),
+                            user_name: userDetails.name,
+                            phone_number: userDetails.phoneNumber,
+                            email: userDetails.email
+                        });
+                    " x-show="step === maxStep">Confirm Booking</button>
                 </div>
 
                 <!-- Desktop: Back button on left -->
@@ -470,8 +566,66 @@
 
                 <!-- Desktop: Next and Cancel buttons on right -->
                 <div class="hidden sm:flex items-center gap-3">
-                    <button type="button" class="btn-ghost" @click="showErrors = true; canContinue() ? step = Math.min(maxStep, step + 1) : null" x-show="step < maxStep">Next</button>
-                    <button type="submit" class="btn-primary" :disabled="!canContinue() || step !== maxStep" x-show="step === maxStep">Confirm Booking</button>
+                    <button type="button" class="btn-ghost" @click="
+                        showErrors = true;
+                        if (canContinue()) {
+                            const currentStep = step;
+                            const nextStep = Math.min(maxStep, step + 1);
+
+                            // Log based on current step
+                            if (currentStep === 1) {
+                                logBookingEvent('user-details', {
+                                    user_name: userDetails.name,
+                                    phone_number: userDetails.phoneNumber,
+                                    email: userDetails.email
+                                });
+                            } else if (currentStep === 2) {
+                                logBookingEvent('movie-selection', {
+                                    movie_id: movieId,
+                                    show_date: parseDate(selectedDate),
+                                    show_time: parseTime(selectedTime),
+                                    user_name: userDetails.name,
+                                    phone_number: userDetails.phoneNumber,
+                                    email: userDetails.email
+                                });
+                            } else if (currentStep === 3) {
+                                logBookingEvent('ticket-count', {
+                                    ticket_count: totalTickets(),
+                                    movie_id: movieId,
+                                    show_date: parseDate(selectedDate),
+                                    show_time: parseTime(selectedTime),
+                                    user_name: userDetails.name,
+                                    phone_number: userDetails.phoneNumber,
+                                    email: userDetails.email
+                                });
+                            } else if (currentStep === 4) {
+                                logBookingEvent('seat-selection', {
+                                    selected_seats: seats,
+                                    movie_id: movieId,
+                                    show_date: parseDate(selectedDate),
+                                    show_time: parseTime(selectedTime),
+                                    ticket_count: totalTickets(),
+                                    user_name: userDetails.name,
+                                    phone_number: userDetails.phoneNumber,
+                                    email: userDetails.email
+                                });
+                            }
+
+                            step = nextStep;
+                        }
+                    " x-show="step < maxStep">Next</button>
+                    <button type="submit" class="btn-primary" :disabled="!canContinue() || step !== maxStep" @click="
+                        logBookingEvent('payment-attempt', {
+                            movie_id: movieId,
+                            show_date: parseDate(selectedDate),
+                            show_time: parseTime(selectedTime),
+                            selected_seats: seats,
+                            ticket_count: totalTickets(),
+                            user_name: userDetails.name,
+                            phone_number: userDetails.phoneNumber,
+                            email: userDetails.email
+                        });
+                    " x-show="step === maxStep">Confirm Booking</button>
                     <a href="{{ url('/movies') }}" class="text-xs uppercase tracking-[0.2em] text-slate-400 hover:text-white">Cancel</a>
                 </div>
 
