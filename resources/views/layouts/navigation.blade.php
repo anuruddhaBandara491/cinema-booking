@@ -76,9 +76,11 @@
             <a href="{{ url('/') }}" class="text-sm font-medium text-slate-200 hover:text-white">Home</a>
             <a href="{{ $isManager ? route('manager.movies.index') : route('movies.index') }}" class="text-sm font-medium text-slate-200 hover:text-white">Movies</a>
 
-            @if ($isManager)
-                <a href="{{ url('/manager/movies') }}" class="text-sm font-medium text-slate-200 hover:text-white">Manage Movies</a>
+             @if ($isManager || $isAdmin)
+                <a href="{{ url('/slider/manage') }}" class="text-sm font-medium text-slate-200 hover:text-white">Slide Images</a>
                 <a href="{{ url('/manager/reports') }}" class="text-sm font-medium text-slate-200 hover:text-white">Reports</a>
+                <a href="{{ url('/counter-booking') }}" class="text-sm font-medium text-slate-200 hover:text-white">Reserve</a>
+
             @endif
 
             @if ($isAdmin)

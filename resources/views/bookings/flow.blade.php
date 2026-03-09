@@ -115,7 +115,7 @@
                         // Update locked seats list
                         const newLockedSeats = data.locked.map(l => l.seat_number);
                         this.lockedSeats = newLockedSeats;
-                        
+
                         // Update global timer if user has selected seats
                         if (this.seats.length > 0 && data.locked.length > 0) {
                             // Get the remaining time from any of the locked seats
@@ -124,7 +124,7 @@
                                 this.globalLockTimer = firstLockedSeat.remaining_seconds;
                             }
                         }
-                        
+
                         this.bookedSeats = data.booked;
                     }
                 })
@@ -160,7 +160,7 @@
             // Remove spaces
             timeStr = timeStr.trim();
 
-            
+
             if (/^\d{1,2}:\d{2}(?:AM|PM|am|pm)$/.test(timeStr)) {
                 const isPM = /PM|pm/.test(timeStr);
                 const isAM = /AM|am/.test(timeStr);
@@ -237,7 +237,7 @@
         },
         lockSeat(seat) {
             const isFirstSeat = this.seats.length === 0;
-            
+
             fetch('/api/lock-seat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -287,7 +287,7 @@
             }
 
             const seatsToRelease = [...this.seats];
-            
+
             fetch('/api/release-all-seats', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -301,7 +301,7 @@
                     // Clear all seats from the UI
                     this.seats = [];
                     this.globalLockTimer = 0;
-                    
+
                     // Notify user
                     alert(`Your seat locks have expired!\n\nSeats released: ${seatsToRelease.join(', ')}\n\nPlease select seats again to continue booking.`);
                     console.log('All locked seats released due to timer expiry:', seatsToRelease);
@@ -459,11 +459,26 @@
             </div>
 
             <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <button type="button" class="btn-ghost" @click="step = Math.max(1, step - 1)" x-show="step > 1">Back</button>
-                <div class="flex items-center gap-3 sm:ml-auto">
+                <!-- Mobile: Next button first (full width) -->
+                <div class="order-first sm:order-none w-full sm:w-auto flex flex-col gap-2 sm:gap-0 sm:hidden">
+                    <button type="button" class="btn-ghost w-full" @click="showErrors = true; canContinue() ? step = Math.min(maxStep, step + 1) : null" x-show="step < maxStep">Next</button>
+                    <button type="submit" class="btn-primary w-full" :disabled="!canContinue() || step !== maxStep" x-show="step === maxStep">Confirm Booking</button>
+                </div>
+
+                <!-- Desktop: Back button on left -->
+                <button type="button" class="btn-ghost hidden sm:inline-block" @click="step = Math.max(1, step - 1)" x-show="step > 1">Back</button>
+
+                <!-- Desktop: Next and Cancel buttons on right -->
+                <div class="hidden sm:flex items-center gap-3">
                     <button type="button" class="btn-ghost" @click="showErrors = true; canContinue() ? step = Math.min(maxStep, step + 1) : null" x-show="step < maxStep">Next</button>
                     <button type="submit" class="btn-primary" :disabled="!canContinue() || step !== maxStep" x-show="step === maxStep">Confirm Booking</button>
                     <a href="{{ url('/movies') }}" class="text-xs uppercase tracking-[0.2em] text-slate-400 hover:text-white">Cancel</a>
+                </div>
+
+                <!-- Mobile: Back and Cancel buttons below -->
+                <div class="flex items-center gap-3 w-full sm:hidden">
+                    <button type="button" class="btn-ghost flex-1" @click="step = Math.max(1, step - 1)" x-show="step > 1">Back</button>
+                    <a href="{{ url('/movies') }}" class="text-xs uppercase tracking-[0.2em] text-slate-400 hover:text-white flex-1 text-center">Cancel</a>
                 </div>
             </div>
             </div>
