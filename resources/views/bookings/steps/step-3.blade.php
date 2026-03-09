@@ -111,7 +111,7 @@
                             @foreach ($boxRight as $col)
                                 @php($seat = $row.$col)
                                 <button type="button"
-                                    class="rounded-md border border-white/40 bg-white/90 px-2 py-1.5 text[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
+                                    class="rounded-md border border-white/40 bg-white/90 px-2 py-1.5 text-[10px] font-semibold text-slate-900 transition hover:border-emerald-400/70"
                                     :class="{
                                         '!border-emerald-400 !bg-emerald-400 !text-emerald-950 shadow-[0_0_12px_rgba(52,211,153,0.45)]': seats.includes('{{ $seat }}'),
                                         '!border-red-400 !bg-red-400 !text-red-950 cursor-not-allowed': bookedSeats.includes('{{ $seat }}'),

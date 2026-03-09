@@ -71,12 +71,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::middleware(['role:manager|admin'])->group(function () {
-    Route::get('slider/manage', [SliderImageController::class, 'index'])->name('slider.manage');
-    Route::get('slider/create', [SliderImageController::class, 'create'])->name('slider.create');
-    Route::post('slider/store', [SliderImageController::class, 'store'])->name('slider.store');
-    Route::delete('slider/{sliderImage}', [SliderImageController::class, 'destroy'])->name('slider.destroy');
-});
+        Route::get('slider/manage', [SliderImageController::class, 'index'])->name('slider.manage');
+        Route::get('slider/create', [SliderImageController::class, 'create'])->name('slider.create');
+        Route::post('slider/store', [SliderImageController::class, 'store'])->name('slider.store');
+        Route::delete('slider/{sliderImage}', [SliderImageController::class, 'destroy'])->name('slider.destroy');
 
+        // Counter Booking Routes
+        Route::get('/counter-booking', [BookingController::class, 'counterBookingIndex'])->name('bookings.counter.index');
+        Route::post('/counter-booking/book', [BookingController::class, 'counterBookingStore'])->name('bookings.counter.store');
     });
+
+});
 
 require __DIR__.'/auth.php';
