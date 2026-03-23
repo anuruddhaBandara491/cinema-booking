@@ -1,5 +1,5 @@
-<!-- Step 3 -->
-<div x-show="step === 3" x-cloak x-transition.opacity.duration.300>
+<!-- Step 1: Tickets Selection (combined with Date & Time) -->
+<div x-show="step === 1" x-cloak x-transition.opacity.duration.300>
     <h4 class="text-lg font-semibold text-white">Select Tickets</h4>
     <div class="mt-4 grid gap-4 sm:grid-cols-2">
         @forelse ($ticketTypes as $ticketType)

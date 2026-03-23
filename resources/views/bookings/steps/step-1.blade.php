@@ -1,5 +1,5 @@
-<!-- Step 2 -->
-<div x-show="step === 2" x-cloak x-transition.opacity.duration.300>
+<!-- Step 1: Date & Time Selection -->
+<div x-show="step === 1" x-cloak x-transition.opacity.duration.300>
     <div class="grid gap-6 lg:grid-cols-2">
         <div>
             <h4 class="text-lg font-semibold text-white">Select Date</h4>

@@ -1,5 +1,5 @@
-<!-- Step 1: User Details -->
-<div x-show="step === 1" x-cloak x-transition.opacity.duration.300>
+<!-- Step 4: User Details -->
+<div x-show="step === 4" x-cloak x-transition.opacity.duration.300>
     <h4 class="text-lg font-semibold text-white">Your Details</h4>
     <p class="mt-2 text-sm text-slate-400">Please provide your contact information</p>
 

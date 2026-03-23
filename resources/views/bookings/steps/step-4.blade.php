@@ -1,5 +1,5 @@
-<!-- Step 5 -->
-<div x-show="step === 5" x-cloak x-transition.opacity.duration.300>
+<!-- Step 3: Payment -->
+<div x-show="step === 3" x-cloak x-transition.opacity.duration.300>
     <div class="flex items-center justify-between mb-6">
         <h4 class="text-lg font-semibold text-white">Payment</h4>
         <!-- Timer Display for Payment Step -->

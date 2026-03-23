@@ -33,11 +33,11 @@
             name: '',
             phoneNumber: ''
         },
-        validateStep1() {
+        validateStep4() {
             this.errors.name = this.userDetails.name.trim() === '' ? 'Full name is required.' : '';
             this.errors.phoneNumber = this.userDetails.phoneNumber.trim() === '' ? 'Phone number is required.' : '';
         },
-        maxStep: 5,
+        maxStep: 4,
         userDetails: {
             name: '',
             phoneNumber: '',
@@ -387,16 +387,14 @@
         },
         canContinue() {
             if (this.step === 1) {
-                this.validateStep1();
-                return this.errors.name === '' && this.errors.phoneNumber === '';
-            }
-            if (this.step === 2) return this.selectedDate && this.selectedTime;
-            if (this.step === 3) {
+                // Step 1: Date & Time + Tickets (combined)
+                const hasDate = this.selectedDate && this.selectedTime;
                 const hasTickets = this.totalTickets() > 0;
                 const boxValid = this.boxTypeIds.every((id) => this.isBoxValid(id));
-                return hasTickets && boxValid;
+                return hasDate && hasTickets && boxValid;
             }
-            if (this.step === 4) {
+            if (this.step === 2) {
+                // Step 2: Seats selection
                 const ticketTotals = this.ticketTotalsByType();
                 const seatTotals = this.seatTotalsByType();
                 const totalTickets = ticketTotals.box + ticketTotals.odc;
@@ -412,6 +410,15 @@
                 }
 
                 return totalSeats === totalTickets;
+            }
+            if (this.step === 3) {
+                // Step 3: Payment - no validation needed
+                return true;
+            }
+            if (this.step === 4) {
+                // Step 4: User Details - validate name and phone
+                this.validateStep4();
+                return this.errors.name === '' && this.errors.phoneNumber === '';
             }
             return true;
         }
@@ -472,28 +479,26 @@
                 </div>
                 <div class="w-full max-w-md">
                     <div class="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-400">
+                        <span>Book Tickets</span>
                         <span>Your Details</span>
-                        <span>Payment</span>
                     </div>
                     <div class="mt-2 h-2 w-full rounded-full bg-canvas-muted">
                         <div class="h-2 rounded-full bg-gradient-to-r from-primary-600 via-accent to-amber-400 transition-all" :style="`width: ${((step - 1) / (maxStep - 1)) * 100}%`"></div>
                     </div>
-                    <div class="mt-4 grid grid-cols-5 gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
-                        <div :class="step >= 1 ? 'text-white' : ''">Details</div>
-                        <div :class="step >= 2 ? 'text-white' : ''">Date</div>
-                        <div :class="step >= 3 ? 'text-white' : ''">Tickets</div>
-                        <div :class="step >= 4 ? 'text-white' : ''">Seats</div>
-                        <div :class="step >= 5 ? 'text-white' : ''">Payment</div>
+                    <div class="mt-4 grid grid-cols-4 gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
+                        <div :class="step >= 1 ? 'text-white' : ''">Date & Tickets</div>
+                        <div :class="step >= 2 ? 'text-white' : ''">Seats</div>
+                        <div :class="step >= 3 ? 'text-white' : ''">Payment</div>
+                        <div :class="step >= 4 ? 'text-white' : ''">Details</div>
                     </div>
                 </div>
             </div>
 
             <div class="mt-10 space-y-8">
-                @include('bookings.steps.step-user-details')
                 @include('bookings.steps.step-1')
                 @include('bookings.steps.step-2')
                 @include('bookings.steps.step-3')
-                @include('bookings.steps.step-4')
+                @include('bookings.steps.step-user-details')
             </div>
 
             <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -507,40 +512,32 @@
 
                             // Log based on current step
                             if (currentStep === 1) {
-                                logBookingEvent('user-details', {
-                                    user_name: userDetails.name,
-                                    phone_number: userDetails.phoneNumber,
-                                    email: userDetails.email
-                                });
-                            } else if (currentStep === 2) {
                                 logBookingEvent('movie-selection', {
                                     movie_id: movieId,
                                     show_date: parseDate(selectedDate),
                                     show_time: parseTime(selectedTime),
-                                    user_name: userDetails.name,
-                                    phone_number: userDetails.phoneNumber,
-                                    email: userDetails.email
                                 });
-                            } else if (currentStep === 3) {
                                 logBookingEvent('ticket-count', {
                                     ticket_count: totalTickets(),
                                     movie_id: movieId,
                                     show_date: parseDate(selectedDate),
                                     show_time: parseTime(selectedTime),
-                                    user_name: userDetails.name,
-                                    phone_number: userDetails.phoneNumber,
-                                    email: userDetails.email
                                 });
-                            } else if (currentStep === 4) {
+                            } else if (currentStep === 2) {
                                 logBookingEvent('seat-selection', {
                                     selected_seats: seats,
                                     movie_id: movieId,
                                     show_date: parseDate(selectedDate),
                                     show_time: parseTime(selectedTime),
                                     ticket_count: totalTickets(),
-                                    user_name: userDetails.name,
-                                    phone_number: userDetails.phoneNumber,
-                                    email: userDetails.email
+                                });
+                            } else if (currentStep === 3) {
+                                logBookingEvent('payment-attempt', {
+                                    movie_id: movieId,
+                                    show_date: parseDate(selectedDate),
+                                    show_time: parseTime(selectedTime),
+                                    selected_seats: seats,
+                                    ticket_count: totalTickets(),
                                 });
                             }
 
@@ -548,12 +545,7 @@
                         }
                     " x-show="step < maxStep">Next</button>
                     <button type="submit" class="btn-primary w-full" :disabled="!canContinue() || step !== maxStep" @click="
-                        logBookingEvent('payment-attempt', {
-                            movie_id: movieId,
-                            show_date: parseDate(selectedDate),
-                            show_time: parseTime(selectedTime),
-                            selected_seats: seats,
-                            ticket_count: totalTickets(),
+                        logBookingEvent('user-details', {
                             user_name: userDetails.name,
                             phone_number: userDetails.phoneNumber,
                             email: userDetails.email
@@ -574,40 +566,32 @@
 
                             // Log based on current step
                             if (currentStep === 1) {
-                                logBookingEvent('user-details', {
-                                    user_name: userDetails.name,
-                                    phone_number: userDetails.phoneNumber,
-                                    email: userDetails.email
-                                });
-                            } else if (currentStep === 2) {
                                 logBookingEvent('movie-selection', {
                                     movie_id: movieId,
                                     show_date: parseDate(selectedDate),
                                     show_time: parseTime(selectedTime),
-                                    user_name: userDetails.name,
-                                    phone_number: userDetails.phoneNumber,
-                                    email: userDetails.email
                                 });
-                            } else if (currentStep === 3) {
                                 logBookingEvent('ticket-count', {
                                     ticket_count: totalTickets(),
                                     movie_id: movieId,
                                     show_date: parseDate(selectedDate),
                                     show_time: parseTime(selectedTime),
-                                    user_name: userDetails.name,
-                                    phone_number: userDetails.phoneNumber,
-                                    email: userDetails.email
                                 });
-                            } else if (currentStep === 4) {
+                            } else if (currentStep === 2) {
                                 logBookingEvent('seat-selection', {
                                     selected_seats: seats,
                                     movie_id: movieId,
                                     show_date: parseDate(selectedDate),
                                     show_time: parseTime(selectedTime),
                                     ticket_count: totalTickets(),
-                                    user_name: userDetails.name,
-                                    phone_number: userDetails.phoneNumber,
-                                    email: userDetails.email
+                                });
+                            } else if (currentStep === 3) {
+                                logBookingEvent('payment-attempt', {
+                                    movie_id: movieId,
+                                    show_date: parseDate(selectedDate),
+                                    show_time: parseTime(selectedTime),
+                                    selected_seats: seats,
+                                    ticket_count: totalTickets(),
                                 });
                             }
 
@@ -615,12 +599,7 @@
                         }
                     " x-show="step < maxStep">Next</button>
                     <button type="submit" class="btn-primary" :disabled="!canContinue() || step !== maxStep" @click="
-                        logBookingEvent('payment-attempt', {
-                            movie_id: movieId,
-                            show_date: parseDate(selectedDate),
-                            show_time: parseTime(selectedTime),
-                            selected_seats: seats,
-                            ticket_count: totalTickets(),
+                        logBookingEvent('user-details', {
                             user_name: userDetails.name,
                             phone_number: userDetails.phoneNumber,
                             email: userDetails.email

@@ -48,7 +48,6 @@
             @if ($isAdmin)
                 <a href="{{ url('/admin/ticket-types') }}" class="text-sm font-medium text-slate-200 hover:text-white">Ticket Types</a>
                 <a href="{{ route('admin.booking-flow-logs.index') }}" class="text-sm font-medium text-slate-200 hover:text-white">Booking Logs</a>
-                <a href="{{ url('/admin/logs') }}" class="text-sm font-medium text-slate-200 hover:text-white">Logs</a>
             @endif
 
             <div class="h-6 w-px bg-white/10"></div>
@@ -87,7 +86,6 @@
             @if ($isAdmin)
                 <a href="{{ url('/admin/ticket-types') }}" class="text-sm font-medium text-slate-200 hover:text-white">Ticket Types</a>
                 <a href="{{ route('admin.booking-flow-logs.index') }}" class="text-sm font-medium text-slate-200 hover:text-white">Booking Logs</a>
-                <a href="{{ url('/admin/logs') }}" class="text-sm font-medium text-slate-200 hover:text-white">Logs</a>
             @endif
 
             <div class="border-t border-white/10 pt-4">
