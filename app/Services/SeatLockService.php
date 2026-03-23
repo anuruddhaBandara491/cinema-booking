@@ -218,9 +218,12 @@ class SeatLockService
      */
     public function releaseAllSessionLocks($sessionId)
     {
-        return SeatLock::forSession($sessionId)
-            ->active()
-            ->delete();
+        return SeatLock::where('session_id', $sessionId)
+            ->get()
+            ->each(fn($lock) => $lock->delete());
+        // Alternatively, we can do a bulk delete if we don't need to trigger model events:
+        // return SeatLock::where('session_id', $sessionId)
+        //     ->delete();
     }
 
     /**

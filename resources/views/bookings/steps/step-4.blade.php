@@ -19,7 +19,7 @@
         <!-- LEFT SIDE: User Details Form -->
         <div class="rounded-2xl border border-white/10 bg-canvas-muted p-6">
             <h5 class="text-base font-semibold text-white mb-4">Your Information</h5>
-            
+
             <!-- Full Name Field -->
             <div class="mb-4">
                 <label for="userName" class="block text-sm font-medium text-slate-200 mb-2">
@@ -73,15 +73,26 @@
         <!-- RIGHT SIDE: Booking Summary -->
         <div class="rounded-2xl border border-white/10 bg-canvas-muted p-6">
             <h5 class="text-base font-semibold text-white mb-4">Booking Summary</h5>
-            <div class="space-y-3 text-sm">
+            <div class="space-y-4 text-sm">
+                <!-- Movie Name -->
+                <div class="flex justify-between text-slate-300">
+                    <span class="text-slate-400">Movie:</span>
+                    <span class="text-white font-medium" x-text="movieName"></span>
+                </div>
+
+                <!-- Date & Time -->
                 <div class="flex justify-between text-slate-300">
                     <span class="text-slate-400">Date & Time:</span>
                     <span class="text-white font-medium"><span x-text="selectedDate"></span> at <span x-text="selectedTime"></span></span>
                 </div>
+
+                <!-- Tickets -->
                 <div class="flex justify-between text-slate-300">
                     <span class="text-slate-400">Tickets:</span>
                     <span class="text-white font-medium" x-text="totalTickets()"></span>
                 </div>
+
+                <!-- Selected Seats -->
                 <div class="border-t border-slate-700 pt-3">
                     <p class="text-slate-400 text-xs uppercase tracking-[0.1em] mb-2">Selected Seats</p>
                     <div class="flex flex-wrap gap-2">
@@ -90,9 +101,24 @@
                         </template>
                     </div>
                 </div>
+
+                <!-- Price Breakdown -->
+                <div class="border-t border-slate-700 pt-3 space-y-2">
+                    <p class="text-slate-400 text-xs uppercase tracking-[0.1em]">Price Breakdown</p>
+                    <div class="flex justify-between text-slate-400 text-xs">
+                        <span>Seat Price:</span>
+                        <span class="text-slate-300" x-text="`LKR ${calculateSeatPrices()?.toLocaleString() || '0'}`"></span>
+                    </div>
+                    <div class="flex justify-between text-slate-400 text-xs">
+                        <span>Booking Charge:</span>
+                        <span class="text-slate-300" x-text="`LKR ${calculateBookingCharge()?.toLocaleString() || '0'}`"></span>
+                    </div>
+                </div>
+
+                <!-- Total Amount -->
                 <div class="border-t border-slate-700 pt-3">
                     <div class="flex justify-between items-center">
-                        <span class="text-slate-400">Total Amount:</span>
+                        <span class="text-slate-400 font-medium">Total Amount:</span>
                         <span class="text-lg font-bold text-amber-300" x-text="`LKR ${calculateTotal()?.toLocaleString() || '0'}`"></span>
                     </div>
                 </div>

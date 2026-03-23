@@ -61,6 +61,9 @@
         seats: [],
         paymentMethod: 'card',
         movieId: {{ $movie->id }},
+        movieName: @js($movie->title),
+        movieBookingCharge: {{ $movie->booking_charge ?? 0 }},
+        ticketTypePrices: @js($ticketTypes->mapWithKeys(fn ($type) => [strtolower($type->name) => ['id' => $type->id, 'adult_price' => (float)$type->adult_price, 'child_price' => $type->has_child ? (float)$type->child_price : 0]])->all()),
         sessionId: '',
         lockedSeats: [],
         bookedSeats: [],
@@ -380,9 +383,45 @@
             }, { box: 0, odc: 0 });
         },
         calculateTotal() {
-            // This would need to calculate based on ticket types and prices
-            // For now, returning a placeholder that will be calculated server-side
-            return 0;
+            let total = 0;
+
+            // Calculate seat prices based on selected seats and ticket counts
+            for (const seat of this.seats) {
+                const seatType = this.seatType(seat);
+                if (seatType === 'box') {
+                    if (this.ticketTypePrices.box) {
+                        total += this.ticketTypePrices.box.adult_price;
+                    }
+                } else if (seatType === 'odc') {
+                    if (this.ticketTypePrices.odc) {
+                        total += this.ticketTypePrices.odc.adult_price;
+                    }
+                }
+            }
+
+            // Add booking charge
+            total += this.movieBookingCharge;
+
+            return total.toFixed(2);
+        },
+        calculateSeatPrices() {
+            let seatPrice = 0;
+            for (const seat of this.seats) {
+                const seatType = this.seatType(seat);
+                if (seatType === 'box') {
+                    if (this.ticketTypePrices.box) {
+                        seatPrice += this.ticketTypePrices.box.adult_price;
+                    }
+                } else if (seatType === 'odc') {
+                    if (this.ticketTypePrices.odc) {
+                        seatPrice += this.ticketTypePrices.odc.adult_price;
+                    }
+                }
+            }
+            return seatPrice.toFixed(2);
+        },
+        calculateBookingCharge() {
+            return this.movieBookingCharge.toFixed(2);
         },
         isBoxValid(id) {
             return this.ticketTotal(id) % 2 === 0;
@@ -435,6 +474,7 @@
 
             <!-- Hidden fields for form submission -->
             <input type="hidden" name="movie_id" value="{{ $movie->id }}">
+            <input type="hidden" name="movie_name" x-model="movieName">
             <input type="hidden" name="customer_name" x-model="userDetails.name">
             <input type="hidden" name="customer_phone" x-model="userDetails.phoneNumber">
             <input type="hidden" name="customer_email" x-model="userDetails.email">
@@ -445,7 +485,7 @@
             <input type="hidden" name="tickets" :value="JSON.stringify(tickets)">
             <input type="hidden" name="session_id" x-model="sessionId">
             <input type="hidden" name="payment_method" x-model="paymentMethod">
-            <input type="hidden" name="total_amount" :value="calculateTotal()">
+            <input type="hidden" name="total_amount" :value="Math.round(calculateTotal() * 100) / 100">
 
             <!-- Handle step transitions with logging -->
             <script>
