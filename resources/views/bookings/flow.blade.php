@@ -29,15 +29,25 @@
     <section class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8" x-data="{
         step: 1,
         showErrors: false,
+        termsAccepted: false,
         errors: {
             name: '',
-            phoneNumber: ''
+            phoneNumber: '',
+            email: ''
         },
-        validateStep4() {
+        validateStep3() {
             this.errors.name = this.userDetails.name.trim() === '' ? 'Full name is required.' : '';
             this.errors.phoneNumber = this.userDetails.phoneNumber.trim() === '' ? 'Phone number is required.' : '';
+
+            // Validate email if provided
+            if (this.userDetails.email.trim() !== '') {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                this.errors.email = !emailRegex.test(this.userDetails.email) ? 'Please enter a valid email address.' : '';
+            } else {
+                this.errors.email = '';
+            }
         },
-        maxStep: 4,
+        maxStep: 3,
         userDetails: {
             name: '',
             phoneNumber: '',
@@ -412,13 +422,10 @@
                 return totalSeats === totalTickets;
             }
             if (this.step === 3) {
-                // Step 3: Payment - no validation needed
-                return true;
-            }
-            if (this.step === 4) {
-                // Step 4: User Details - validate name and phone
-                this.validateStep4();
-                return this.errors.name === '' && this.errors.phoneNumber === '';
+                // Step 3: User Details - validate name, phone, email
+                this.validateStep3();
+                const fieldsValid = this.errors.name === '' && this.errors.phoneNumber === '' && this.errors.email === '';
+                return fieldsValid;
             }
             return true;
         }
@@ -485,11 +492,10 @@
                     <div class="mt-2 h-2 w-full rounded-full bg-canvas-muted">
                         <div class="h-2 rounded-full bg-gradient-to-r from-primary-600 via-accent to-amber-400 transition-all" :style="`width: ${((step - 1) / (maxStep - 1)) * 100}%`"></div>
                     </div>
-                    <div class="mt-4 grid grid-cols-4 gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
+                    <div class="mt-4 grid grid-cols-3 gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
                         <div :class="step >= 1 ? 'text-white' : ''">Date & Tickets</div>
                         <div :class="step >= 2 ? 'text-white' : ''">Seats</div>
-                        <div :class="step >= 3 ? 'text-white' : ''">Payment</div>
-                        <div :class="step >= 4 ? 'text-white' : ''">Details</div>
+                        <div :class="step >= 3 ? 'text-white' : ''">Details & Confirm</div>
                     </div>
                 </div>
             </div>
@@ -498,7 +504,7 @@
                 @include('bookings.steps.step-1')
                 @include('bookings.steps.step-2')
                 @include('bookings.steps.step-3')
-                @include('bookings.steps.step-user-details')
+                @include('bookings.steps.step-4')
             </div>
 
             <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -529,14 +535,6 @@
                                     movie_id: movieId,
                                     show_date: parseDate(selectedDate),
                                     show_time: parseTime(selectedTime),
-                                    ticket_count: totalTickets(),
-                                });
-                            } else if (currentStep === 3) {
-                                logBookingEvent('payment-attempt', {
-                                    movie_id: movieId,
-                                    show_date: parseDate(selectedDate),
-                                    show_time: parseTime(selectedTime),
-                                    selected_seats: seats,
                                     ticket_count: totalTickets(),
                                 });
                             }
@@ -583,14 +581,6 @@
                                     movie_id: movieId,
                                     show_date: parseDate(selectedDate),
                                     show_time: parseTime(selectedTime),
-                                    ticket_count: totalTickets(),
-                                });
-                            } else if (currentStep === 3) {
-                                logBookingEvent('payment-attempt', {
-                                    movie_id: movieId,
-                                    show_date: parseDate(selectedDate),
-                                    show_time: parseTime(selectedTime),
-                                    selected_seats: seats,
                                     ticket_count: totalTickets(),
                                 });
                             }
