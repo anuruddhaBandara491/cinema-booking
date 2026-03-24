@@ -30,6 +30,7 @@
         step: 1,
         showErrors: false,
         termsAccepted: false,
+        verificationAccepted: false,
         errors: {
             name: '',
             phoneNumber: '',
@@ -461,10 +462,8 @@
                 return totalSeats === totalTickets;
             }
             if (this.step === 3) {
-                // Step 3: User Details - validate name, phone, email
-                this.validateStep3();
-                const fieldsValid = this.errors.name === '' && this.errors.phoneNumber === '' && this.errors.email === '';
-                return fieldsValid;
+                // Step 3: Confirm Booking - enable only when both checkboxes are checked
+                return this.termsAccepted && this.verificationAccepted;
             }
             return true;
         }
