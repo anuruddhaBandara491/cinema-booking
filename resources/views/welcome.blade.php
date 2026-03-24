@@ -151,8 +151,8 @@
                                     :image="$movie->cover_image_url"
                                     :book-now="$movie->book_now"
                                     tag="Upcoming"
-                                    cta-label="View Details"
-                                    cta-href="{{ route('movies.index') }}"
+                                    cta-label="Book Now"
+                                    cta-href="{{ route('bookings.flow', $movie) }}"
                                 />
                             @endforeach
                         </div>

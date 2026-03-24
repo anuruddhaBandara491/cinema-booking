@@ -1,12 +1,35 @@
 @php
+    $today = now()->toDateString();
+    $showStartDate = optional($movie->show_start_date)->toDateString();
+    $showEndDate = optional($movie->show_end_date)->toDateString();
+
+    // Determine if movie is expired (today is after show_end_date)
+    $isExpired = $today > $showEndDate;
+    $isShowActive = $today <= $showEndDate;
+
+    // Determine the start date for the booking window
+    // If show hasn't started, start from show_start_date. Otherwise, start from today.
+    $bookingStartDate = $today < $showStartDate ? $showStartDate : $today;
+
+    // Generate dates based on show period constraints
     $windowDays = max(1, (int) ($movie->booking_window_days ?? 3));
     $dates = collect(range(0, $windowDays - 1))
-        ->map(fn ($offset) => now()->addDays($offset)->format('D, M d'))
+        ->map(function ($offset) use ($bookingStartDate, $showEndDate) {
+            $date = \Carbon\Carbon::createFromFormat('Y-m-d', $bookingStartDate)->addDays($offset);
+            // Don't generate dates beyond show_end_date
+            if ($date->toDateString() <= $showEndDate) {
+                return $date->format('D, M d');
+            }
+            return null;
+        })
+        ->filter(fn ($date) => $date !== null)
         ->values()
         ->all();
+
     $times = array_values($movie->show_times ?? []);
     $defaultDate = $dates[0] ?? '';
     $defaultTime = $times[0] ?? '';
+
     $ticketTypes = $ticketTypes ?? collect();
     $ticketCounts = $ticketTypes
         ->mapWithKeys(fn ($type) => [$type->id => ['adult' => 0, 'child' => 0]])
@@ -31,6 +54,8 @@
         showErrors: false,
         termsAccepted: false,
         verificationAccepted: false,
+        isExpired: @js($isExpired),
+        isShowActive: @js($isShowActive),
         errors: {
             name: '',
             phoneNumber: '',
@@ -437,7 +462,10 @@
         },
         canContinue() {
             if (this.step === 1) {
-                // Step 1: Date & Time + Tickets (combined)
+                // Step 1: Check if show is expired, then validate date/time + tickets
+                if (this.isExpired) {
+                    return false;
+                }
                 const hasDate = this.selectedDate && this.selectedTime;
                 const hasTickets = this.totalTickets() > 0;
                 const boxValid = this.boxTypeIds.every((id) => this.isBoxValid(id));
