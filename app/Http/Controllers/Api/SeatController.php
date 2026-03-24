@@ -59,6 +59,8 @@ class SeatController extends Controller
                 'show_time' => 'required|date_format:H:i',
             ]);
 
+            $this->seatLockService->cleanupExpiredLocks();
+            
             $statuses = $this->seatLockService->getSeatStatuses(
                 $validated['movie_id'],
                 $validated['show_date'],
