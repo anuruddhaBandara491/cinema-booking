@@ -30,7 +30,7 @@
                {{ $slot }}
             </main>
 
-            <footer class="bo   rder-t border-white/10 bg-slate-950">
+            <footer class="border-t border-white/10 bg-slate-950">
                 <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
                     <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                         <div>
@@ -38,9 +38,10 @@
                             <p class="text-xs text-slate-500">© {{ now()->year }} {{ config('app.name', 'Cinema Booking') }}. All rights reserved.</p>
                         </div>
                         <div class="flex gap-4 text-xs text-slate-400">
-                            <a class="hover:text-white" href="{{ url('/') }}">Home</a>
-                            <a class="hover:text-white" href="{{ url('/movies') }}">Movies</a>
-                            <a class="hover:text-white" href="{{ url('/contact') }}">Contact</a>
+                            <a class="hover:text-white transition-colors" href="{{ url('/') }}">Home</a>
+                            <a class="hover:text-white transition-colors" href="{{ url('/movies') }}">Movies</a>
+                            <a class="hover:text-white transition-colors" href="{{ route('terms') }}">Terms & Conditions</a>
+                            <a class="hover:text-white transition-colors" href="{{ url('/contact') }}">Contact</a>
                         </div>
                     </div>
                 </div>

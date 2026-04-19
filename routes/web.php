@@ -29,6 +29,10 @@ Route::get('/', function () {
     ]);
 })->name('dashboard');
 
+Route::get('/terms-and-conditions', function () {
+    return view('pages.terms-and-conditions');
+})->name('terms');
+
 // Route::get('/dashboard', function () {
 //     return view('dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
