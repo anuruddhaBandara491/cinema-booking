@@ -1,0 +1,314 @@
+/**
+ * Seat Locking System - Styles
+ *
+ * Provides styling for:
+ * - Seat grid layout
+ * - Seat status colors (available, locked, booked)
+ * - Responsive design
+ * - Animations and hover effects
+ */
+
+/* Seat Grid Container */
+.seat-grid-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #1f2937;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.seat-grid-screen {
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #9ca3af;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    border: 2px solid #9ca3af;
+    border-radius: 4px;
+    letter-spacing: 0.1em;
+}
+
+/* Seat Grid */
+#seat-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Seat Row */
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.row-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    font-weight: bold;
+    color: #d1d5db;
+    font-size: 0.9rem;
+}
+
+.seats-container {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Individual Seat */
+.seat {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Available Seat */
+.seat.available {
+    background-color: #10b981;
+    color: white;
+    border-color: #059669;
+}
+
+.seat.available:hover {
+    background-color: #059669;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.seat.available:active {
+    transform: scale(0.95);
+}
+
+/* Locked Seat - By Current User */
+.seat.locked.locked-by-me {
+    background-color: #fbbf24;
+    color: #1f2937;
+    border-color: #f59e0b;
+    animation: pulse-lock 2s infinite;
+}
+
+.seat.locked.locked-by-me:hover {
+    background-color: #f59e0b;
+    transform: scale(1.05);
+}
+
+.seat.locked.locked-by-me:active {
+    transform: scale(0.95);
+    cursor: pointer;
+}
+
+/* Locked Seat - By Other User */
+.seat.locked.locked-by-other {
+    background-color: #f59e0b;
+    color: #1f2937;
+    border-color: #d97706;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.seat.locked.locked-by-other:hover {
+    background-color: #f59e0b;
+    cursor: not-allowed;
+}
+
+/* Booked Seat */
+.seat.booked {
+    background-color: #ef4444;
+    color: white;
+    border-color: #dc2626;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.seat.booked:hover {
+    background-color: #ef4444;
+    cursor: not-allowed;
+}
+
+/* Seat Legend */
+.seat-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #4b5563;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #d1d5db;
+    font-size: 0.9rem;
+}
+
+.legend-item .seat {
+    width: 30px;
+    height: 30px;
+    cursor: default;
+    border: none !important;
+}
+
+.legend-item .seat:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Animations */
+@keyframes pulse-lock {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+    }
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 4px;
+    color: white;
+    z-index: 9999;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification-success {
+    background-color: #10b981;
+}
+
+.notification-error {
+    background-color: #ef4444;
+}
+
+.notification-warning {
+    background-color: #f59e0b;
+}
+
+.notification-info {
+    background-color: #3b82f6;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .seat-grid-container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+
+    .seat {
+        width: 35px;
+        height: 35px;
+        font-size: 0.65rem;
+    }
+
+    .seats-container {
+        gap: 0.25rem;
+    }
+
+    .seat-row {
+        gap: 0.5rem;
+    }
+
+    .seat-legend {
+        gap: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .row-label {
+        min-width: 1.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .seat {
+        width: 30px;
+        height: 30px;
+        font-size: 0.6rem;
+    }
+
+    .seats-container {
+        gap: 0.2rem;
+    }
+
+    .seat-grid-container {
+        padding: 0.5rem;
+    }
+
+    .legend-item {
+        font-size: 0.8rem;
+    }
+
+    .seat-grid-screen {
+        font-size: 1rem;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .seat-grid-container {
+        background-color: #111827;
+    }
+
+    .seat-grid-screen {
+        border-color: #6b7280;
+    }
+
+    .row-label {
+        color: #e5e7eb;
+    }
+
+    .legend-item {
+        color: #e5e7eb;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .seat-grid-container {
+        box-shadow: none;
+        border: 1px solid #d1d5db;
+    }
+
+    .seat {
+        border: 1px solid #9ca3af;
+    }
+
+    .notification {
+        display: none !important;
+    }
+}
