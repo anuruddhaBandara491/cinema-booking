@@ -216,9 +216,9 @@
                         If you have any questions or concerns regarding these Terms and Conditions, please contact us at:
                     </p>
                     <div class="bg-slate-900 p-4 rounded-lg">
-                        <p class="text-slate-200"><strong>Email:</strong> support@cinemaplatform.com</p>
-                        <p class="text-slate-200"><strong>Phone:</strong> +1 (800) CINEMA-1</p>
-                        <p class="text-slate-200"><strong>Address:</strong> Cinema Complex, Main Street</p>
+                        <p class="text-slate-200"><strong>Email:</strong> kiimalka@gmail.com</p>
+                        <p class="text-slate-200"><strong>Phone:</strong> +94 771798183</p>
+                        <p class="text-slate-200"><strong>Address:</strong>No 73, Pothuvil Road, monaragala</p>
                     </div>
                 </div>
 

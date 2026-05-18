@@ -6,7 +6,7 @@
                 @csrf
                 <div>
                     <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Title</label>
-                    <input type="text" name="title" x-model="form.title" class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
+                    <input type="text" name="title" class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
                 </div>
                 <div>
                     <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Subtitle</label>
