@@ -29,7 +29,7 @@
                 <span class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-red-500 via-rose-500 to-amber-400 text-sm font-bold text-white">CB</span>
                 <div class="leading-tight">
                     <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Cinema</p>
-                    <p class="text-lg font-semibold text-white">Booking</p>
+                    <p class="text-lg font-semibold text-white">{{ config('cinema.business.name') }}</p>
                 </div>
             </a>
         </div>

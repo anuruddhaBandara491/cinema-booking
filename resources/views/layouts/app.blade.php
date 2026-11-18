@@ -37,11 +37,13 @@
                             <p class="text-sm text-slate-400">Experience cinema in a new light.</p>
                             <p class="text-xs text-slate-500">© {{ now()->year }} {{ config('app.name', 'Cinema Booking') }}. All rights reserved.</p>
                         </div>
-                        <div class="flex gap-4 text-xs text-slate-400">
+                        <div class="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400">
                             <a class="hover:text-white transition-colors" href="{{ url('/') }}">Home</a>
-                            <a class="hover:text-white transition-colors" href="{{ url('/movies') }}">Movies</a>
+                            <a class="hover:text-white transition-colors" href="{{ route('movies.index') }}">Movies</a>
                             <a class="hover:text-white transition-colors" href="{{ route('terms') }}">Terms & Conditions</a>
-                            <a class="hover:text-white transition-colors" href="{{ url('/contact') }}">Contact</a>
+                            <a class="hover:text-white transition-colors" href="{{ route('privacy') }}">Privacy Policy</a>
+                            <a class="hover:text-white transition-colors" href="{{ route('refund') }}">Refund Policy</a>
+                            <a class="hover:text-white transition-colors" href="{{ route('contact') }}">Contact</a>
                         </div>
                     </div>
                 </div>

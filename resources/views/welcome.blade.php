@@ -83,6 +83,7 @@
 
     <section class="bg-slate-950 py-8">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <x-ticket-prices :ticket-types="$ticketTypes" class="mb-10" />
             <div x-data="{ tab: 'now' }">
                 <div class="flex items-center gap-8 mb-8">
                     <button @click="tab = 'now'" :class="tab === 'now' ? 'text-white font-bold' : 'text-slate-400 font-semibold'" class="text-xl uppercase tracking-wider focus:outline-none relative">
@@ -118,6 +119,7 @@
                                     :times="$movie->show_times ?? []"
                                     :image="$movie->cover_image_url"
                                     :book-now="$movie->book_now"
+                                    :booking-charge="$movie->booking_charge"
                                     tag="Now Showing"
                                     cta-label="Book Now"
                                     cta-href="{{ route('bookings.flow', $movie) }}"
@@ -150,6 +152,7 @@
                                     :times="$movie->show_times ?? []"
                                     :image="$movie->cover_image_url"
                                     :book-now="$movie->book_now"
+                                    :booking-charge="$movie->booking_charge"
                                     tag="Upcoming"
                                     cta-label="Book Now"
                                     cta-href="{{ route('bookings.flow', $movie) }}"

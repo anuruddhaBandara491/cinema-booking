@@ -7,6 +7,7 @@
     'ctaLabel' => 'Book Now',
     'ctaHref' => '#',
     'tag' => null,
+    'bookingCharge' => null,
     'editHref' => null,
     'editAction' => null,
     'deleteHref' => null,
@@ -41,6 +42,9 @@
                     <span class="rounded-full border border-white/10 bg-canvas-muted px-3 py-1">{{ $time }}</span>
                 @endforeach
             </div>
+        @endif
+        @if ($bookingCharge !== null)
+            <p class="mt-3 text-sm text-slate-300">Handling fee <span class="font-semibold text-white">LKR {{ number_format((float) $bookingCharge, 2) }}</span></p>
         @endif
         <div class="mt-4 flex items-center gap-3">
             @if (!isset($bookNow) || $bookNow)

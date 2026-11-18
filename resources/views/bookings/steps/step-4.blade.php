@@ -12,17 +12,12 @@
         <div class="rounded-2xl border border-white/10 bg-canvas-muted p-6 max-h-150 overflow-y-auto">
             <h5 class="text-base font-semibold text-white mb-4">Disclaimer</h5>
             <div class="space-y-2 text-xs leading-7 text-slate-300">
-                <p><span class="font-semibold text-slate-200">1.</span> Tickets once booked cannot be exchanged or refunded.</p>
-                <p><span class="font-semibold text-slate-200">2.</span> No refund on a purchased ticket is possible, even in case of any rescheduling.</p>
-                <p><span class="font-semibold text-slate-200">3.</span> Ticket purchased is valid only for the particular show & cannot be exchanged or used for other shows/cities.</p>
-                <p><span class="font-semibold text-slate-200">4.</span> We recommend that you arrive at least 30 minutes prior at the venue to pick up your physical tickets.</p>
-                <p><span class="font-semibold text-slate-200">5.</span> The event is subject to government permissions. In case the permissions are not granted and event is canceled, a refund shall be issued to all patrons.</p>
-                <p><span class="font-semibold text-slate-200">6.</span> Unlawful resale (or attempted unlawful resale) of a ticket would lead to seizure & cancellation of that ticket without refund or other compensation & deemed action will be taken against such parties.</p>
-                <p><span class="font-semibold text-slate-200">7.</span> Each ticket admits one person only.</p>
-                <p><span class="font-semibold text-slate-200">8.</span> Internet handling fee per ticket may be levied.</p>
-                <p><span class="font-semibold text-slate-200">9.</span> Organizers reserve the right to perform security checks on invitees/members of the audience at the entry point for security reasons.</p>
-                <p><span class="font-semibold text-slate-200">10.</span> Persons under the influence of alcohol or any substances will not be allowed inside the venue, any kind of disrespect or harm to Actors & crew will not be tolerated.</p>
-                <p><span class="font-semibold text-slate-200">11.</span> Organizers or any of its agents, officers, employees shall not be responsible for any injury, damage, theft, losses or cost suffered at or as a result of the event or any part of it.</p>
+                <p><span class="font-semibold text-slate-200">1.</span> A ticket is valid only for the film, date, time, and seat on this booking. It cannot be exchanged.</p>
+                <p><span class="font-semibold text-slate-200">2.</span> Each ticket admits one person. Please arrive at least 30 minutes before the show to collect your ticket at the cinema.</p>
+                <p><span class="font-semibold text-slate-200">3.</span> The amount payable is in Sri Lankan Rupees (LKR) and is the ticket price plus the handling fee shown in this summary.</p>
+                <p><span class="font-semibold text-slate-200">4.</span> If you do not attend, or you want a different show after payment, the ticket is not refunded.</p>
+                <p><span class="font-semibold text-slate-200">5.</span> If {{ config('cinema.business.name') }} cancels the show, or the show is cancelled because government permission is not granted, the amount you paid is refunded to the same payment method you used to pay (the payment-initiated medium). Refunds are not sent to a different card, account, or wallet. See the <a href="{{ route('refund') }}" class="text-rose-300 hover:text-rose-200" target="_blank">Refund Policy</a>.</p>
+                <p><span class="font-semibold text-slate-200">6.</span> Unlawful resale of a ticket can lead to cancellation of that ticket without a refund.</p>
             </div>
         </div>
 
@@ -124,7 +119,7 @@
                         class="h-5 w-5 mt-0.5 rounded border-white/20 bg-slate-900 text-rose-500 focus:ring-2 focus:ring-rose-400 transition"
                     />
                     <span class="text-xs text-slate-300 leading-relaxed">
-                        I agree to the <span class="text-white font-semibold">Terms and Conditions</span>
+                        I agree to the <a href="{{ route('terms') }}" class="text-white font-semibold hover:text-rose-200" target="_blank">Terms and Conditions</a>, <a href="{{ route('privacy') }}" class="text-white font-semibold hover:text-rose-200" target="_blank">Privacy Policy</a>, and <a href="{{ route('refund') }}" class="text-white font-semibold hover:text-rose-200" target="_blank">Refund Policy</a>.
                     </span>
                 </label>
 
@@ -136,7 +131,7 @@
                         class="h-5 w-5 mt-0.5 rounded border-white/20 bg-slate-900 text-rose-500 focus:ring-2 focus:ring-rose-400 transition"
                     />
                     <span class="text-xs text-slate-300 leading-relaxed">
-                        I have verified the cinema name, show date and time before proceeding to payment. Once booked cinema does not allow us to <span class="text-white font-semibold">Refund/Modify</span> the booking.
+                        I have checked the cinema, show date, and time. I understand that I cannot change this booking after payment, and that an approved refund is returned only to the original payment method.
                     </span>
                 </label>
             </div>

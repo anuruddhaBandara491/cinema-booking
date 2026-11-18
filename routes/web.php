@@ -26,12 +26,17 @@ Route::get('/', function () {
     return view('welcome', [
         'nowShowing' => $nowShowing,
         'upcoming' => $upcoming,
+        'ticketTypes' => TicketType::orderBy('name')->get(),
     ]);
 })->name('dashboard');
 
 Route::get('/terms-and-conditions', function () {
     return view('pages.terms-and-conditions');
 })->name('terms');
+
+Route::view('/privacy-policy', 'pages.privacy-policy')->name('privacy');
+Route::view('/refund-policy', 'pages.refund-policy')->name('refund');
+Route::view('/contact', 'pages.contact')->name('contact');
 
 // Route::get('/dashboard', function () {
 //     return view('dashboard');

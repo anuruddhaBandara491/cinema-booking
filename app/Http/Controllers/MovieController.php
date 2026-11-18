@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Movie;
+use App\Models\TicketType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -24,6 +25,7 @@ class MovieController extends Controller
 
         return view('movies.index', [
             'movies' => $movies,
+            'ticketTypes' => TicketType::orderBy('name')->get(),
         ]);
     }
 

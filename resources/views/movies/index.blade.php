@@ -7,6 +7,7 @@
     </x-slot>
 
     <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <x-ticket-prices :ticket-types="$ticketTypes" class="mb-10" />
         @if ($movies->isEmpty())
             <div class="rounded-2xl border border-white/10 bg-canvas-muted p-10 text-center text-sm text-slate-400">
                 No movies are available yet. Check back soon.
@@ -22,6 +23,7 @@
                         :tag="$movie->is_published ? 'Now Showing' : ($movie->is_upcoming ? 'Upcoming' : 'Draft')"
                         :image="$movie->cover_image_url"
                         :book-now="$movie->book_now"
+                        :booking-charge="$movie->booking_charge"
                         cta-label="Book Now"
                         cta-href="{{ route('bookings.flow', $movie) }}"
                     />
