@@ -30,7 +30,7 @@ class SliderImageController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
             'trailer_url' => ['nullable', 'url'],
-            'image' => ['required', 'image', 'max:2048'],
+            'image' => ['required','file', 'mimes:jpeg,jpg,png,webp,avif', 'max:2048'],
             'order' => ['nullable', 'integer'],
         ]);
         $data['image_path'] = $request->file('image')->store('slider', 'public');

@@ -4,6 +4,15 @@
             <h2 class="text-2xl font-bold mb-6">Add Slider Image</h2>
             <form method="POST" action="{{ route('slider.store') }}" enctype="multipart/form-data" class="space-y-6">
                 @csrf
+                @if ($errors->any())
+                    <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                        <ul class="list-disc pl-5">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <div>
                     <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Title</label>
                     <input type="text" name="title" class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
