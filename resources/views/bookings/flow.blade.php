@@ -65,15 +65,100 @@
             this.errors.name = this.userDetails.name.trim() === '' ? 'Full name is required.' : '';
             this.errors.phoneNumber = this.userDetails.phoneNumber.trim() === '' ? 'Phone number is required.' : '';
 
-            // Validate email if provided
-            if (this.userDetails.email.trim() !== '') {
+            if (this.userDetails.email.trim() === '') {
+                this.errors.email = 'Email address is required for payment.';
+            } else {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 this.errors.email = !emailRegex.test(this.userDetails.email) ? 'Please enter a valid email address.' : '';
-            } else {
-                this.errors.email = '';
             }
         },
-        maxStep: 3,
+        detailsAreValid() {
+            this.validateStep3();
+
+            return this.userDetails.name.trim() !== ''
+                && this.userDetails.phoneNumber.trim() !== ''
+                && this.userDetails.email.trim() !== ''
+                && this.errors.name === ''
+                && this.errors.phoneNumber === ''
+                && this.errors.email === '';
+        },
+        hasTicketTypes: @js($ticketTypes->isNotEmpty()),
+        validationMessage() {
+            if (this.step === 1) {
+                if (this.isExpired) {
+                    return 'This movie is no longer available to book.';
+                }
+                if (!this.hasTicketTypes) {
+                    return 'Ticket prices are not set up yet. Please contact the cinema.';
+                }
+                if (!this.selectedDate) {
+                    return 'Select a show date to continue.';
+                }
+                if (!this.selectedTime) {
+                    return 'Select a show time to continue.';
+                }
+                if (this.totalTickets() === 0) {
+                    return 'Select at least one ticket to continue.';
+                }
+                if (!this.boxTypeIds.every((id) => this.isBoxValid(id))) {
+                    return 'Box tickets must be selected in pairs. Add or remove one box ticket.';
+                }
+                return '';
+            }
+
+            if (this.step === 2) {
+                const ticketTotals = this.ticketTotalsByType();
+                const seatTotals = this.seatTotalsByType();
+                const boxCapacity = Math.floor(ticketTotals.box / 2);
+                const odcNeeded = ticketTotals.odc - seatTotals.odc;
+                const boxNeeded = boxCapacity - seatTotals.box;
+
+                if (ticketTotals.box + ticketTotals.odc === 0) {
+                    return 'Go back and select tickets before choosing seats.';
+                }
+                if (odcNeeded > 0 && boxNeeded > 0) {
+                    return `Select ${odcNeeded} more ODC seat${odcNeeded === 1 ? '' : 's'} and ${boxNeeded} more box seat${boxNeeded === 1 ? '' : 's'}.`;
+                }
+                if (odcNeeded > 0) {
+                    return `Select ${odcNeeded} more ODC seat${odcNeeded === 1 ? '' : 's'}.`;
+                }
+                if (boxNeeded > 0) {
+                    return `Select ${boxNeeded} more box seat${boxNeeded === 1 ? '' : 's'}. Each box seat covers two box tickets.`;
+                }
+                if (seatTotals.odc > ticketTotals.odc || seatTotals.box > boxCapacity) {
+                    return 'You selected more seats than tickets. Remove the extra seats.';
+                }
+                return '';
+            }
+
+            if (this.step === 3 || this.step === 4) {
+                this.validateStep3();
+                if (this.errors.name) {
+                    return this.errors.name;
+                }
+                if (this.errors.phoneNumber) {
+                    return this.errors.phoneNumber;
+                }
+                if (this.errors.email) {
+                    return this.errors.email;
+                }
+                if (!this.termsAccepted) {
+                    return 'Agree to the terms, privacy policy, and refund policy to continue.';
+                }
+                if (!this.verificationAccepted) {
+                    return 'Confirm the cinema, show date, and time before continuing.';
+                }
+            }
+
+            return '';
+        },
+        revealStepError() {
+            this.showErrors = true;
+            this.$nextTick(() => {
+                this.$refs.stepError?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        },
+        maxStep: 4,
         userDetails: {
             name: '',
             phoneNumber: '',
@@ -489,15 +574,20 @@
 
                 return totalSeats === totalTickets;
             }
-            if (this.step === 3) {
-                // Step 3: Confirm Booking - enable only when both checkboxes are checked
-                return this.termsAccepted && this.verificationAccepted;
+            if (this.step === 3 || this.step === 4) {
+                return this.detailsAreValid() && this.termsAccepted && this.verificationAccepted;
             }
             return true;
         }
     }" @init="init()" @destroy="destroy()">
-        <form action="{{ route('bookings.store') }}" method="POST" @submit.prevent="step < maxStep ? step = Math.min(maxStep, step + 1) : $el.submit()" x-ref="bookingForm">
+        <form action="{{ route('bookings.store') }}" method="POST" @submit.prevent="if (canContinue()) { showErrors = false; if (step < maxStep) { step = Math.min(maxStep, step + 1) } else { $el.submit() } } else { revealStepError() }" x-ref="bookingForm">
             @csrf
+
+            @if (session('error'))
+                <div class="mb-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                    {{ session('error') }}
+                </div>
+            @endif
 
             <!-- Hidden fields for form submission -->
             <input type="hidden" name="movie_id" value="{{ $movie->id }}">
@@ -553,16 +643,17 @@
                 </div>
                 <div class="w-full max-w-md">
                     <div class="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-400">
-                        <span>Book Tickets</span>
-                        <span>Your Details</span>
+                        <span>Your details</span>
+                        <span>PayHere</span>
                     </div>
                     <div class="mt-2 h-2 w-full rounded-full bg-canvas-muted">
                         <div class="h-2 rounded-full bg-gradient-to-r from-primary-600 via-accent to-amber-400 transition-all" :style="`width: ${((step - 1) / (maxStep - 1)) * 100}%`"></div>
                     </div>
-                    <div class="mt-4 grid grid-cols-3 gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
-                        <div :class="step >= 1 ? 'text-white' : ''">Date & Tickets</div>
+                    <div class="mt-4 grid grid-cols-4 gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 sm:text-[11px]">
+                        <div :class="step >= 1 ? 'text-white' : ''">Date</div>
                         <div :class="step >= 2 ? 'text-white' : ''">Seats</div>
-                        <div :class="step >= 3 ? 'text-white' : ''">Details & Confirm</div>
+                        <div :class="step >= 3 ? 'text-white' : ''">Details</div>
+                        <div :class="step >= 4 ? 'text-white' : ''">Pay</div>
                     </div>
                 </div>
             </div>
@@ -572,14 +663,17 @@
                 @include('bookings.steps.step-2')
                 @include('bookings.steps.step-3')
                 @include('bookings.steps.step-4')
+                @include('bookings.steps.step-payment')
             </div>
+
+            <p id="bookingFlow__step_error" x-ref="stepError" x-show="showErrors && validationMessage()" x-text="validationMessage()" x-cloak class="mt-8 rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-100"></p>
 
             <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <!-- Mobile: Next button first (full width) -->
                 <div class="order-first sm:order-none w-full sm:w-auto flex flex-col gap-2 sm:gap-0 sm:hidden">
                     <button type="button" class="btn-ghost w-full" @click="
-                        showErrors = true;
                         if (canContinue()) {
+                            showErrors = false;
                             const currentStep = step;
                             const nextStep = Math.min(maxStep, step + 1);
 
@@ -604,18 +698,35 @@
                                     show_time: parseTime(selectedTime),
                                     ticket_count: totalTickets(),
                                 });
+                            } else if (currentStep === 3) {
+                                logBookingEvent('user-details', {
+                                    user_name: userDetails.name,
+                                    phone_number: userDetails.phoneNumber,
+                                    email: userDetails.email,
+                                });
                             }
 
                             step = nextStep;
+                        } else {
+                            revealStepError();
                         }
                     " x-show="step < maxStep">Next</button>
-                    <button type="submit" class="btn-primary w-full" :disabled="!canContinue() || step !== maxStep" @click="
-                        logBookingEvent('user-details', {
+                    <button type="submit" class="btn-primary w-full" x-show="step === maxStep" @click="
+                        if (!canContinue()) {
+                            revealStepError();
+                            $event.preventDefault();
+                            return;
+                        }
+                        logBookingEvent('payment-attempt', {
+                            movie_id: movieId,
+                            show_date: parseDate(selectedDate),
+                            show_time: parseTime(selectedTime),
+                            ticket_count: totalTickets(),
                             user_name: userDetails.name,
                             phone_number: userDetails.phoneNumber,
                             email: userDetails.email
                         });
-                    " x-show="step === maxStep">Confirm Booking</button>
+                    ">Pay with PayHere</button>
                 </div>
 
                 <!-- Desktop: Back button on left -->
@@ -624,8 +735,8 @@
                 <!-- Desktop: Next and Cancel buttons on right -->
                 <div class="hidden sm:flex items-center gap-3">
                     <button type="button" class="btn-ghost" @click="
-                        showErrors = true;
                         if (canContinue()) {
+                            showErrors = false;
                             const currentStep = step;
                             const nextStep = Math.min(maxStep, step + 1);
 
@@ -650,18 +761,35 @@
                                     show_time: parseTime(selectedTime),
                                     ticket_count: totalTickets(),
                                 });
+                            } else if (currentStep === 3) {
+                                logBookingEvent('user-details', {
+                                    user_name: userDetails.name,
+                                    phone_number: userDetails.phoneNumber,
+                                    email: userDetails.email,
+                                });
                             }
 
                             step = nextStep;
+                        } else {
+                            revealStepError();
                         }
                     " x-show="step < maxStep">Next</button>
-                    <button type="submit" class="btn-primary" :disabled="!canContinue() || step !== maxStep" @click="
-                        logBookingEvent('user-details', {
+                    <button type="submit" class="btn-primary" x-show="step === maxStep" @click="
+                        if (!canContinue()) {
+                            revealStepError();
+                            $event.preventDefault();
+                            return;
+                        }
+                        logBookingEvent('payment-attempt', {
+                            movie_id: movieId,
+                            show_date: parseDate(selectedDate),
+                            show_time: parseTime(selectedTime),
+                            ticket_count: totalTickets(),
                             user_name: userDetails.name,
                             phone_number: userDetails.phoneNumber,
                             email: userDetails.email
                         });
-                    " x-show="step === maxStep">Confirm Booking</button>
+                    ">Pay with PayHere</button>
                     <a href="{{ url('/movies') }}" class="text-xs uppercase tracking-[0.2em] text-slate-400 hover:text-white">Cancel</a>
                 </div>
 

@@ -50,15 +50,7 @@ class SeatLockService
             ])
             ->values();
 
-        // Get all booked seats for this show (from completed bookings)
-        $bookedSeats = Booking::where('movie_id', $movieId)
-            ->where('booking_date', $showDate)
-            ->where('booking_time', $showTime)
-            ->where('payment_status', 'completed')
-            ->get()
-            ->flatMap(fn($booking) => $booking->selected_seats ?? [])
-            ->unique()
-            ->values();
+        $bookedSeats = $this->heldSeatNumbers($movieId, $showDate, $showTime);
 
         return [
             'locked' => $activeLocks->toArray(),
@@ -83,14 +75,7 @@ class SeatLockService
     {
         try {
             return DB::transaction(function () use ($movieId, $showDate, $showTime, $seatNumber, $sessionId) {
-                // 1. Check if seat is already booked (completed bookings only)
-                $isBooked = Booking::where('movie_id', $movieId)
-                    ->where('booking_date', $showDate)
-                    ->where('booking_time', $showTime)
-                    ->where('payment_status', 'completed')
-                    ->get()
-                    ->flatMap(fn($booking) => $booking->selected_seats ?? [])
-                    ->contains($seatNumber);
+                $isBooked = $this->heldSeatNumbers($movieId, $showDate, $showTime)->contains($seatNumber);
 
                 if ($isBooked) {
                     return [
@@ -240,6 +225,32 @@ class SeatLockService
 
 
     /**
+     * Seats already sold, or held by a PayHere payment that is still pending.
+     *
+     * @return \Illuminate\Support\Collection<int, string>
+     */
+    public function heldSeatNumbers($movieId, $showDate, $showTime)
+    {
+        $holdMinutes = (int) config('payhere.pending_hold_minutes', 30);
+
+        return Booking::query()
+            ->where('movie_id', $movieId)
+            ->whereDate('booking_date', $showDate)
+            ->where('booking_time', $showTime)
+            ->where(function ($query) use ($holdMinutes) {
+                $query->whereIn('payment_status', ['completed', 'paid'])
+                    ->orWhere(function ($pending) use ($holdMinutes) {
+                        $pending->where('payment_status', 'pending')
+                            ->where('created_at', '>=', now()->subMinutes($holdMinutes));
+                    });
+            })
+            ->get()
+            ->flatMap(fn ($booking) => $booking->selected_seats ?? [])
+            ->unique()
+            ->values();
+    }
+
+    /**
      * Check if a specific seat is available (not booked and not locked).
      *
      * @param int $movieId
@@ -250,14 +261,7 @@ class SeatLockService
      */
     public function isSeatAvailable($movieId, $showDate, $showTime, $seatNumber)
     {
-        // Check if booked (completed bookings only)
-        $isBooked = Booking::where('movie_id', $movieId)
-            ->where('booking_date', $showDate)
-            ->where('booking_time', $showTime)
-            ->where('payment_status', 'completed')
-            ->get()
-            ->flatMap(fn($booking) => $booking->selected_seats ?? [])
-            ->contains($seatNumber);
+        $isBooked = $this->heldSeatNumbers($movieId, $showDate, $showTime)->contains($seatNumber);
 
         if ($isBooked) {
             return false;

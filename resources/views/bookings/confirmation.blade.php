@@ -1,20 +1,56 @@
 <x-app-layout>
+    @php
+        $paymentStatus = $booking->payment_status;
+        $isPaid = $paymentStatus === 'completed';
+        $isPending = $paymentStatus === 'pending';
+        $statusClass = match ($paymentStatus) {
+            'completed' => 'bg-emerald-500/20 text-emerald-300',
+            'pending' => 'bg-yellow-500/20 text-yellow-300',
+            default => 'bg-rose-500/20 text-rose-200',
+        };
+    @endphp
+
     <x-slot name="header">
         <div>
             <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Booking</p>
-            <h2 class="text-2xl font-semibold text-white">Booking Confirmed</h2>
+            <h2 class="text-2xl font-semibold text-white">
+                @if ($isPaid)
+                    Booking Confirmed
+                @elseif ($isPending)
+                    Payment Processing
+                @else
+                    Payment Not Completed
+                @endif
+            </h2>
         </div>
     </x-slot>
 
     <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-        <!-- Success Message -->
-        <div class="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-6 text-center">
-            <svg class="mx-auto h-12 w-12 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <h3 class="mt-4 text-xl font-semibold text-emerald-400">Thank You!</h3>
-            <p class="mt-2 text-slate-300">Your booking has been successfully submitted.</p>
-        </div>
+        @if (session('error'))
+            <div class="mb-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        @if ($isPaid)
+            <div class="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-6 text-center">
+                <svg class="mx-auto h-12 w-12 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 class="mt-4 text-xl font-semibold text-emerald-400">Thank You!</h3>
+                <p class="mt-2 text-slate-300">Your payment was received and the seats are booked.</p>
+            </div>
+        @elseif ($isPending)
+            <div class="rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-6 text-center">
+                <h3 class="text-xl font-semibold text-yellow-200">Waiting for PayHere</h3>
+                <p class="mt-2 text-slate-300">If you completed the payment, refresh this page in a moment. The booking is confirmed only after PayHere notifies this site.</p>
+            </div>
+        @else
+            <div class="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-6 text-center">
+                <h3 class="text-xl font-semibold text-rose-200">Payment was not completed</h3>
+                <p class="mt-2 text-slate-300">These seats are not reserved. You can start the booking again.</p>
+            </div>
+        @endif
 
         <!-- Booking Reference -->
         <div class="mt-8 rounded-2xl border border-white/10 bg-canvas-muted p-6">
@@ -72,7 +108,7 @@
                     </div>
                     <div>
                         <p class="text-slate-500">Booked At</p>
-                        <p class="text-white">{{ $booking->booked_at->format('M d, Y H:i A') }}</p>
+                        <p class="text-white">{{ $booking->booked_at ? $booking->booked_at->format('M d, Y H:i A') : 'Not confirmed yet' }}</p>
                     </div>
                 </div>
             </div>
@@ -102,8 +138,7 @@
                     </div>
                     <div class="flex items-center justify-between pt-3 border-t border-white/10">
                         <p class="text-slate-300">Status</p>
-                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
-                            :class="'{{ $booking->payment_status }}' === 'pending' ? 'bg-yellow-500/20 text-yellow-300' : 'bg-emerald-500/20 text-emerald-300'">
+                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $statusClass }}">
                             {{ ucfirst($booking->payment_status) }}
                         </span>
                     </div>
@@ -114,18 +149,18 @@
         <!-- Action Buttons -->
         <div class="mt-8 flex flex-col gap-3 sm:flex-row">
             <a href="{{ route('movies.index') }}" class="btn-primary flex-1 text-center">
-                Continue Shopping
+                Browse movies
             </a>
-            <a href="{{ route('bookings.show', $booking) }}" class="btn-ghost flex-1 text-center">
-                View Booking Details
+            <a href="{{ route('contact') }}" class="btn-ghost flex-1 text-center">
+                Contact the cinema
             </a>
         </div>
 
         <!-- Important Notice -->
         <div class="mt-8 rounded-2xl border border-white/10 bg-canvas-muted p-6">
             <p class="text-sm text-slate-300">
-                <strong class="text-white">Important:</strong> Please save your booking reference <strong>{{ $booking->booking_reference }}</strong> for future reference.
-                You will need it to retrieve your booking details. A confirmation has been sent to your phone number.
+                <strong class="text-white">Important:</strong> Save booking reference <strong>{{ $booking->booking_reference }}</strong>.
+                Bring it to the cinema and arrive at least 30 minutes before the show.
             </p>
         </div>
     </section>

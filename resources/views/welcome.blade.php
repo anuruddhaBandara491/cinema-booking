@@ -12,11 +12,23 @@
             ];
         })->values();
     @endphp
+    <style>
+        .homeSlider {
+            aspect-ratio: 16 / 9;
+            max-height: 420px;
+        }
+        @media (min-width: 768px) {
+            .homeSlider {
+                aspect-ratio: 1920 / 700;
+                max-height: 700px;
+            }
+        }
+    </style>
     <section
         x-data="sliderComponent({{ $sliderSlides->toJson() }})"
         x-init="start()"
         @mouseenter="stop()" @mouseleave="start()"
-        class="relative w-full h-[40vh] md:h-[70vh] max-h-[350px] md:max-h-[700px] bg-black overflow-hidden rounded-2xl shadow-lg"
+        class="homeSlider relative w-full bg-black overflow-hidden rounded-2xl shadow-lg"
     >
             <script>
             function sliderComponent(slides) {
@@ -50,7 +62,7 @@
                 x-transition:leave-end="opacity-0"
                 class="absolute inset-0 w-full h-full"
             >
-                <img :src="slide.image" alt="" class="w-full h-full object-contain object-center" />
+                <img :src="slide.image" alt="" class="w-full h-full object-cover object-center" />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
                 <div class="absolute left-10 bottom-10 text-white space-y-2">
                     <h2 class="text-3xl md:text-5xl font-bold" x-text="slide.title"></h2>

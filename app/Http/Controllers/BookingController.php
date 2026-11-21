@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Movie;
+use App\Models\TicketType;
 use App\Services\SeatLockService;
 use App\Services\BookingFlowLogService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -28,13 +30,16 @@ class BookingController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $validated = [];
+
         try {
-            // Validate the booking data
+            $this->decodeJsonFields($request, ['selected_seats', 'tickets']);
+
             $validated = $request->validate([
                 'movie_id' => 'required|exists:movies,id',
                 'customer_name' => 'required|string|max:255',
                 'customer_phone' => 'required|string|max:20',
-                'customer_email' => 'nullable|email|max:255',
+                'customer_email' => 'required|email|max:255',
                 'customer_nic' => 'nullable|string|max:50',
                 'booking_date' => 'required|date',
                 'booking_time' => 'required|string',
@@ -46,10 +51,27 @@ class BookingController extends Controller
                 'payment_method' => 'required|in:card,wallet,cash',
             ]);
 
-            // Log payment success
-            $this->flowLogService->logPaymentSuccess(
+            $movie = Movie::query()->findOrFail($validated['movie_id']);
+            $amount = $this->calculatePayableAmount($movie, $validated['selected_seats']);
+
+            if ((float) $amount <= 0) {
+                return back()->with('error', 'This booking has no amount to pay.')->withInput();
+            }
+
+            $heldSeats = $this->seatLockService
+                ->heldSeatNumbers($movie->id, $validated['booking_date'], $validated['booking_time'])
+                ->all();
+            $conflictingSeats = array_values(array_intersect($validated['selected_seats'], $heldSeats));
+
+            if ($conflictingSeats !== []) {
+                return back()
+                    ->with('error', 'Some seats are no longer available: '.implode(', ', $conflictingSeats))
+                    ->withInput();
+            }
+
+            $this->flowLogService->logPaymentAttempt(
                 sessionId: $validated['session_id'],
-                movieId: (int)$validated['movie_id'],
+                movieId: (int) $validated['movie_id'],
                 showDate: $validated['booking_date'],
                 showTime: $validated['booking_time'],
                 selectedSeats: $validated['selected_seats'],
@@ -59,8 +81,6 @@ class BookingController extends Controller
                 email: $validated['customer_email']
             );
 
-            // Create the booking with 'completed' payment status
-            // (In production, you'd verify payment before setting this)
             $booking = new Booking();
             $booking->movie_id = $validated['movie_id'];
             $booking->booking_reference = Booking::generateReference();
@@ -72,16 +92,15 @@ class BookingController extends Controller
             $booking->booking_time = $validated['booking_time'];
             $booking->selected_seats = $validated['selected_seats'];
             $booking->tickets = $validated['tickets'];
-            $booking->total_amount = $validated['total_amount'];
-            $booking->payment_method = $validated['payment_method'];
-            $booking->payment_status = 'completed'; // Mark as completed
-            $booking->booked_at = now();
+            $booking->total_amount = $amount;
+            $booking->payment_method = 'card';
+            $booking->payment_status = 'pending';
+            $booking->session_id = $validated['session_id'];
             $booking->save();
 
-            // Release all locks for this session now that booking is confirmed
-            $this->seatLockService->releaseAllSessionLocks($validated['session_id']);
-
-            return redirect()->route('bookings.confirmation', $booking)->with('success', 'Booking submitted successfully!');
+            return redirect()->route('bookings.payhere.checkout', $booking);
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (\Exception $e) {
             Log::error('Booking creation failed: ' . $e->getMessage());
 
@@ -103,6 +122,54 @@ class BookingController extends Controller
 
             return back()->with('error', 'Failed to create booking: ' . $e->getMessage())->withInput();
         }
+    }
+
+    /**
+     * @param  array<int, string>  $fields
+     */
+    private function decodeJsonFields(Request $request, array $fields): void
+    {
+        $decoded = [];
+
+        foreach ($fields as $field) {
+            $value = $request->input($field);
+
+            if (! is_string($value)) {
+                continue;
+            }
+
+            $parsed = json_decode($value, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $decoded[$field] = $parsed;
+            }
+        }
+
+        if ($decoded !== []) {
+            $request->merge($decoded);
+        }
+    }
+
+    /**
+     * Charge the same amount the booking screen shows: one adult price per
+     * selected seat, plus the movie handling fee.
+     *
+     * @param  array<int, string>  $seats
+     */
+    private function calculatePayableAmount(Movie $movie, array $seats): string
+    {
+        $ticketTypes = TicketType::query()->get()->keyBy(fn (TicketType $type) => strtolower($type->name));
+        $total = 0.0;
+
+        foreach ($seats as $seat) {
+            $row = strtoupper(substr((string) $seat, 0, 1));
+            $typeName = in_array($row, ['G', 'H'], true) ? 'box' : 'odc';
+            $total += (float) ($ticketTypes->get($typeName)?->adult_price ?? 0);
+        }
+
+        $total += (float) ($movie->booking_charge ?? 0);
+
+        return number_format($total, 2, '.', '');
     }
 
     /**
@@ -160,15 +227,9 @@ class BookingController extends Controller
             ]);
 
             // Verify seats are still available
-            $bookedSeats = Booking::where('movie_id', $validated['movie_id'])
-                ->where('booking_date', $validated['booking_date'])
-                ->where('booking_time', $validated['booking_time'])
-                ->where('payment_status', 'completed')
-                ->get()
-                ->flatMap(fn($booking) => $booking->selected_seats ?? [])
-                ->unique()
-                ->values()
-                ->toArray();
+            $bookedSeats = $this->seatLockService
+                ->heldSeatNumbers($validated['movie_id'], $validated['booking_date'], $validated['booking_time'])
+                ->all();
 
             $conflictingSeats = array_intersect($validated['selected_seats'], $bookedSeats);
             if (!empty($conflictingSeats)) {

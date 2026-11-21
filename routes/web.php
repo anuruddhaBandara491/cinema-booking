@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketTypeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingFlowLogController;
+use App\Http\Controllers\PayhereController;
 use App\Models\Movie;
 use App\Models\TicketType;
 use Illuminate\Support\Facades\Route;
@@ -47,13 +48,21 @@ Route::get('/movies', [MovieController::class, 'index'])->name('movies.index');
 Route::get('/bookings/flow/{movie}', function (Movie $movie) {
     $ticketTypes = TicketType::orderBy('name')->get();
 
+    $appUrl = (string) config('app.url');
+
     return view('bookings.flow', [
         'movie' => $movie,
         'ticketTypes' => $ticketTypes,
+        'payhereSandbox' => (bool) config('payhere.sandbox'),
+        'payhereNotifyIsLocal' => str_contains($appUrl, 'localhost') || str_contains($appUrl, '127.0.0.1'),
     ]);
 })->name('bookings.flow');
 
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+Route::get('/bookings/{booking}/pay', [PayhereController::class, 'checkout'])->name('bookings.payhere.checkout');
+Route::get('/bookings/{booking}/pay/return', [PayhereController::class, 'paymentReturn'])->name('bookings.payhere.return');
+Route::get('/bookings/{booking}/pay/cancel', [PayhereController::class, 'cancel'])->name('bookings.payhere.cancel');
+Route::post('/payhere/notify', [PayhereController::class, 'notify'])->name('payhere.notify');
 Route::get('/bookings/{booking}/confirmation', [BookingController::class, 'confirmation'])->name('bookings.confirmation');
 Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
 

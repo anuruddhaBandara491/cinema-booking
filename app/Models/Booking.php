@@ -30,6 +30,7 @@ class Booking extends Model
         'payment_method',
         'payment_status',
         'payment_reference',
+        'session_id',
         'booked_at',
     ];
 

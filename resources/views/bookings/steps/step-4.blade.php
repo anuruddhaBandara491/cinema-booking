@@ -54,7 +54,7 @@
                             <p x-show="showErrors && errors.phoneNumber" x-text="errors.phoneNumber" class="mt-1 text-xs text-rose-400"></p>
                         </div>
                         <div>
-                            <label for="userEmail" class="block text-xs font-medium text-slate-200 mb-1">Email Address <span class="text-amber-300">*</span></label>
+                            <label for="userEmail" class="block text-xs font-medium text-slate-200 mb-1">Email Address <span class="text-rose-400">*</span></label>
                             <input
                                 type="email"
                                 id="userEmail"
@@ -64,6 +64,7 @@
                                 class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-white text-sm placeholder-slate-600 transition focus:border-amber-300/60 focus:outline-none focus:ring-1 focus:ring-amber-300/40"
                             />
                             <p x-show="showErrors && errors.email" x-text="errors.email" class="mt-1 text-xs text-rose-400"></p>
+                            <p x-show="!showErrors || !errors.email" class="mt-1 text-xs text-slate-500">Required for PayHere</p>
                         </div>
                     </div>
 
@@ -122,6 +123,7 @@
                         I agree to the <a href="{{ route('terms') }}" class="text-white font-semibold hover:text-rose-200" target="_blank">Terms and Conditions</a>, <a href="{{ route('privacy') }}" class="text-white font-semibold hover:text-rose-200" target="_blank">Privacy Policy</a>, and <a href="{{ route('refund') }}" class="text-white font-semibold hover:text-rose-200" target="_blank">Refund Policy</a>.
                     </span>
                 </label>
+                <p id="bookingFlow__terms_error" x-show="showErrors && !termsAccepted" x-cloak class="text-xs text-rose-400">Agree to the terms, privacy policy, and refund policy to continue.</p>
 
                 <!-- Verification Checkbox -->
                 <label class="flex items-start gap-3 cursor-pointer rounded-lg border border-white/10 bg-canvas-muted p-4 hover:border-white/20 transition">
@@ -134,6 +136,7 @@
                         I have checked the cinema, show date, and time. I understand that I cannot change this booking after payment, and that an approved refund is returned only to the original payment method.
                     </span>
                 </label>
+                <p id="bookingFlow__verification_error" x-show="showErrors && !verificationAccepted" x-cloak class="text-xs text-rose-400">Confirm the cinema, show date, and time before continuing.</p>
             </div>
         </div>
     </div>

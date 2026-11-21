@@ -28,6 +28,7 @@
                 <div>
                     <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Image <span class="text-red-500">*</span></label>
                     <input type="file" name="image" required class="mt-2 w-full rounded-xl border border-white/10 bg-canvas-muted px-4 py-3 text-sm text-white" />
+                    <p class="mt-2 text-xs text-slate-400">Use 1920 × 700 px. Keep faces and the movie title in the center, because the edges are cropped on smaller screens.</p>
                 </div>
                 <div>
                     <label class="text-xs uppercase tracking-[0.2em] text-slate-400">Order<span class="text-red-500">*</span>   </label>
