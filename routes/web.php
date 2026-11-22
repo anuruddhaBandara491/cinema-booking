@@ -62,7 +62,6 @@ Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.st
 Route::get('/bookings/{booking}/pay', [PayhereController::class, 'checkout'])->name('bookings.payhere.checkout');
 Route::get('/bookings/{booking}/pay/return', [PayhereController::class, 'paymentReturn'])->name('bookings.payhere.return');
 Route::get('/bookings/{booking}/pay/cancel', [PayhereController::class, 'cancel'])->name('bookings.payhere.cancel');
-Route::post('/payhere/notify', [PayhereController::class, 'notify'])->name('payhere.notify');
 Route::get('/bookings/{booking}/confirmation', [BookingController::class, 'confirmation'])->name('bookings.confirmation');
 Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
 

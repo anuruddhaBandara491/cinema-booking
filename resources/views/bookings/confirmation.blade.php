@@ -202,6 +202,7 @@
             <p class="text-sm text-slate-300">
                 <strong class="text-white">Important:</strong> Save booking reference <strong>{{ $booking->booking_reference }}</strong>.
                 Bring it to the cinema and arrive at least 30 minutes before the show.
+                The ticket amount is not refunded, and the seat number cannot be changed.
             </p>
         </div>
     </section>

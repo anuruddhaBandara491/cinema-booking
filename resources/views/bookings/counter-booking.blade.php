@@ -49,10 +49,10 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        this.bookedSeats = data.booked;
-                        this.lockedSeats = data.locked || [];
-                        // Remove any selected seats that are now booked
-                        this.selectedSeats = this.selectedSeats.filter(seat => !this.bookedSeats.includes(seat));
+                        const lockedList = data.locked || [];
+                        this.bookedSeats = data.booked || [];
+                        this.lockedSeats = lockedList.map(lock => lock.seat_number || lock);
+                        this.selectedSeats = this.selectedSeats.filter(seat => !this.bookedSeats.includes(seat) && !this.lockedSeats.includes(seat));
                     }
                 })
                 .catch(err => console.error('Failed to update seat status:', err));
@@ -194,6 +194,10 @@
                         <div class="flex items-center gap-2">
                             <div class="h-4 w-4 rounded border border-emerald-400 bg-emerald-400"></div>
                             <span class="text-slate-400">Selected</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="h-4 w-4 rounded border border-yellow-400 bg-yellow-400"></div>
+                            <span class="text-slate-400">Locked</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <div class="h-4 w-4 rounded border border-red-400 bg-red-400"></div>

@@ -8,7 +8,7 @@
     <section class="bg-slate-950 py-12">
         <div class="mx-auto max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
             <p class="text-slate-300">
-                {{ config('cinema.business.name') }} sells cinema tickets for shows at our cinema in Monaragala. For a booking, a cancelled show, or a refund, contact us with your booking reference.
+                {{ config('cinema.business.name') }} sells cinema tickets for shows at our cinema in Monaragala. For a booking question, contact us with your booking reference. Ticket amounts are not refunded, and seat numbers cannot be changed after payment.
             </p>
             @include('pages.partials.business-contact')
             <p class="text-sm text-slate-400">

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\SeatController;
 use App\Http\Controllers\Api\BookingFlowLogApiController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PayhereController;
 
 /**
  * API Routes for Seat Locking System and Booking Flow Logging
@@ -28,4 +29,7 @@ Route::middleware('api')->group(function () {
     Route::post('/log/seat-selection', [BookingFlowLogApiController::class, 'logSeatSelection']);
     Route::post('/log/payment-attempt', [BookingFlowLogApiController::class, 'logPaymentAttempt']);
     Route::post('/log/payment-failure', [BookingFlowLogApiController::class, 'logPaymentFailure']);
+
+    Route::post('/payhere/notify', [PayhereController::class, 'notify'])->name('payhere.notify');
+
 });

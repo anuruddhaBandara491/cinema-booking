@@ -20,7 +20,7 @@
         @endif
 
         <p class="mb-6 text-sm text-slate-400">
-            Cancelling a booking frees the seats. Return cash at the counter, or refund a card payment from the PayHere dashboard. This page does not send the money back.
+            Cancelling a booking frees the seats. The ticket amount is not refunded. This page does not send money back.
         </p>
 
         <form method="GET" action="{{ route('bookings.manage') }}" class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end">

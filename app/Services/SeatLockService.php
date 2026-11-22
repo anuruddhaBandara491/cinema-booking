@@ -28,8 +28,8 @@ class SeatLockService
      * Get the status of all seats for a specific movie show.
      *
      * Returns an array with:
-     * - 'locked': Temporarily locked by users (with remaining time)
-     * - 'booked': Permanently booked (from bookings table)
+     * - 'locked': Seat locks, plus unpaid holds (pending payment). Shown yellow.
+     * - 'booked': Paid seats only (completed or paid). Shown red.
      *
      * @param int $movieId
      * @param string $showDate (format: YYYY-MM-DD)
@@ -38,11 +38,10 @@ class SeatLockService
      */
     public function getSeatStatuses($movieId, $showDate, $showTime)
     {
-        // Get all active locks for this show
         $activeLocks = SeatLock::forShow($movieId, $showDate, $showTime)
             ->active()
             ->get()
-            ->map(fn($lock) => [
+            ->map(fn ($lock) => [
                 'seat_number' => $lock->seat_number,
                 'session_id' => $lock->session_id,
                 'remaining_seconds' => $lock->getRemainingSeconds(),
@@ -50,11 +49,39 @@ class SeatLockService
             ])
             ->values();
 
-        $bookedSeats = $this->heldSeatNumbers($movieId, $showDate, $showTime);
+        $heldBookings = $this->heldBookings($movieId, $showDate, $showTime);
+
+        $bookedSeats = $heldBookings
+            ->whereIn('payment_status', ['completed', 'paid'])
+            ->flatMap(fn ($booking) => $booking->selected_seats ?? [])
+            ->unique()
+            ->values();
+
+        $activeLocks = $activeLocks
+            ->reject(fn ($lock) => $bookedSeats->contains($lock['seat_number']))
+            ->values();
+
+        $lockedSeatNumbers = $activeLocks->pluck('seat_number');
+
+        $pendingSeats = $heldBookings
+            ->where('payment_status', 'pending')
+            ->flatMap(fn ($booking) => $booking->selected_seats ?? [])
+            ->unique()
+            ->reject(fn ($seatNumber) => $bookedSeats->contains($seatNumber) || $lockedSeatNumbers->contains($seatNumber))
+            ->values();
+
+        foreach ($pendingSeats as $seatNumber) {
+            $activeLocks->push([
+                'seat_number' => $seatNumber,
+                'session_id' => null,
+                'remaining_seconds' => null,
+                'expires_at' => null,
+            ]);
+        }
 
         return [
-            'locked' => $activeLocks->toArray(),
-            'booked' => $bookedSeats->toArray(),
+            'locked' => $activeLocks->all(),
+            'booked' => $bookedSeats->all(),
         ];
     }
 
@@ -225,11 +252,11 @@ class SeatLockService
 
 
     /**
-     * Seats already sold, or held by a PayHere payment that is still pending.
+     * Paid bookings, plus pending PayHere bookings still inside the hold window.
      *
-     * @return \Illuminate\Support\Collection<int, string>
+     * @return \Illuminate\Support\Collection<int, Booking>
      */
-    public function heldSeatNumbers($movieId, $showDate, $showTime)
+    public function heldBookings($movieId, $showDate, $showTime)
     {
         $holdMinutes = (int) config('payhere.pending_hold_minutes', 30);
 
@@ -244,7 +271,17 @@ class SeatLockService
                             ->where('created_at', '>=', now()->subMinutes($holdMinutes));
                     });
             })
-            ->get()
+            ->get();
+    }
+
+    /**
+     * Seats already sold, or held by a PayHere payment that is still pending.
+     *
+     * @return \Illuminate\Support\Collection<int, string>
+     */
+    public function heldSeatNumbers($movieId, $showDate, $showTime)
+    {
+        return $this->heldBookings($movieId, $showDate, $showTime)
             ->flatMap(fn ($booking) => $booking->selected_seats ?? [])
             ->unique()
             ->values();

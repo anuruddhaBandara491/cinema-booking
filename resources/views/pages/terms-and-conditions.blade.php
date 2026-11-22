@@ -48,7 +48,7 @@
             <div>
                 <h2 class="mb-3 text-2xl font-bold text-white">5. Changes, cancellation, and refunds</h2>
                 <p class="text-slate-300">
-                    You cannot exchange a paid ticket for another film, date, time, or seat. If you do not attend, the ticket is not refunded. If {{ config('cinema.business.name') }} cancels the show, or the show is cancelled because government permission is not granted, the amount you paid is refunded under our <a class="text-rose-300 hover:text-rose-200" href="{{ route('refund') }}">Refund Policy</a>. An approved refund is sent only to the same payment method you used to pay.
+                    A paid ticket is final. {{ config('cinema.business.name') }} does not refund the ticket amount or the handling fee, and does not change the seat number after payment. You cannot move a paid ticket to another film, date, time, or seat. If you do not attend, the amount you paid is not returned. Full details are in our <a class="text-rose-300 hover:text-rose-200" href="{{ route('refund') }}">Refund Policy</a>.
                 </p>
             </div>
 

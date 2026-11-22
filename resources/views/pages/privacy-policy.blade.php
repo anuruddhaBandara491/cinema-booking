@@ -29,7 +29,7 @@
                 <h2 class="mb-3 text-2xl font-bold text-white">How we use it</h2>
                 <ul class="list-disc space-y-2 pl-5 text-slate-300">
                     <li>To take the booking, reserve the seats, and confirm payment.</li>
-                    <li>To contact you about that booking, including a cancelled show and any refund.</li>
+                    <li>To contact you about that booking, including a cancelled show.</li>
                     <li>To admit you at the cinema when you present the booking.</li>
                     <li>To keep records we need for accounts, disputes, and the law of Sri Lanka.</li>
                 </ul>
@@ -38,7 +38,7 @@
             <div>
                 <h2 class="mb-3 text-2xl font-bold text-white">Who we share it with</h2>
                 <p class="text-slate-300">
-                    We do not sell your personal information. We share booking and payment details with PayHere so the payment, and any approved refund, can be processed. We may also disclose information if a Sri Lankan law, court, or regulator requires it.
+                    We do not sell your personal information. We share booking and payment details with PayHere so the payment can be processed. We may also disclose information if a Sri Lankan law, court, or regulator requires it.
                 </p>
             </div>
 
@@ -52,7 +52,7 @@
             <div>
                 <h2 class="mb-3 text-2xl font-bold text-white">How long we keep it</h2>
                 <p class="text-slate-300">
-                    We keep booking records for as long as we need them to run the cinema, handle refunds, and meet accounting and legal duties. Seat holds that are not paid expire automatically and are removed.
+                    We keep booking records for as long as we need them to run the cinema and meet accounting and legal duties. Seat holds that are not paid expire automatically and are removed.
                 </p>
             </div>
 
