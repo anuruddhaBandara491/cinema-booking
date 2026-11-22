@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('bookings:expire-pending')->everyMinute();
+Schedule::command('seats:cleanup-expired-locks')->everyFiveMinutes();
