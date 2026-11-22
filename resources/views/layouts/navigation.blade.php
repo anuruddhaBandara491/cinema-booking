@@ -40,8 +40,9 @@
 
             @if ($isManager || $isAdmin)
                 <a href="{{ url('/slider/manage') }}" class="text-sm font-medium text-slate-200 hover:text-white">Slide Images</a>
-                <a href="{{ url('/manager/reports') }}" class="text-sm font-medium text-slate-200 hover:text-white">Reports</a>
+                <!-- <a href="{{ url('/manager/reports') }}" class="text-sm font-medium text-slate-200 hover:text-white">Reports</a> -->
                 <a href="{{ url('/counter-booking') }}" class="text-sm font-medium text-slate-200 hover:text-white">Reserve</a>
+                <a href="{{ route('bookings.manage') }}" class="text-sm font-medium text-slate-200 hover:text-white">Bookings</a>
 
             @endif
 
@@ -80,6 +81,7 @@
                 <a href="{{ url('/slider/manage') }}" class="text-sm font-medium text-slate-200 hover:text-white">Slide Images</a>
                 <a href="{{ url('/manager/reports') }}" class="text-sm font-medium text-slate-200 hover:text-white">Reports</a>
                 <a href="{{ url('/counter-booking') }}" class="text-sm font-medium text-slate-200 hover:text-white">Reserve</a>
+                <a href="{{ route('bookings.manage') }}" class="text-sm font-medium text-slate-200 hover:text-white">Bookings</a>
 
             @endif
 

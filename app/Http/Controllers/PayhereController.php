@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingTicketMail;
 use App\Models\Booking;
 use App\Services\BookingFlowLogService;
 use App\Services\PayhereService;
@@ -10,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class PayhereController extends Controller
@@ -110,6 +112,26 @@ class PayhereController extends Controller
                 return response('Amount mismatch', 400);
             }
 
+            $soldSeats = $this->seatLockService->seatsSoldOnOtherBookings($booking);
+
+            if ($soldSeats !== []) {
+                $booking->payment_status = 'failed';
+                $booking->save();
+                $this->releaseBookingSeats($booking);
+                $this->logPaymentFailure(
+                    $booking,
+                    'PayHere payment arrived after the seats were sold: '.implode(', ', $soldSeats)
+                );
+
+                Log::warning('PayHere payment succeeded after the seats were sold.', [
+                    'booking_id' => $booking->id,
+                    'booking_reference' => $booking->booking_reference,
+                    'seats' => $soldSeats,
+                ]);
+
+                return response('OK', 200);
+            }
+
             $booking->payment_status = 'completed';
             $booking->booked_at = $booking->booked_at ?? now();
 
@@ -120,6 +142,7 @@ class PayhereController extends Controller
             $booking->save();
             $this->releaseBookingSeats($booking);
             $this->logPaymentSuccess($booking);
+            $this->sendTicketEmail($booking);
 
             return response('OK', 200);
         }
@@ -182,5 +205,23 @@ class PayhereController extends Controller
     private function logSessionId(Booking $booking): string
     {
         return $booking->session_id ?: 'payhere_'.$booking->booking_reference;
+    }
+
+    private function sendTicketEmail(Booking $booking): void
+    {
+        if (! $booking->customer_email) {
+            return;
+        }
+
+        try {
+            $booking->loadMissing('movie');
+            Mail::to($booking->customer_email)->send(new BookingTicketMail($booking));
+        } catch (\Throwable $exception) {
+            Log::error('Booking ticket email failed.', [
+                'booking_id' => $booking->id,
+                'booking_reference' => $booking->booking_reference,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 }

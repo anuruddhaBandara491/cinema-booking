@@ -193,12 +193,81 @@ class BookingController extends Controller
     }
 
     /**
+     * List bookings for a show date so staff can void one.
+     */
+    public function manage(Request $request): View
+    {
+        $showDate = (string) $request->input('show_date', now()->toDateString());
+        $search = trim((string) $request->input('search', ''));
+
+        $bookings = Booking::query()
+            ->with(['movie', 'cancelledBy'])
+            ->whereDate('booking_date', $showDate)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('booking_reference', 'like', '%'.$search.'%')
+                        ->orWhere('customer_phone', 'like', '%'.$search.'%');
+                });
+            })
+            ->orderBy('booking_time')
+            ->orderByDesc('id')
+            ->get();
+
+        return view('bookings.manage', [
+            'bookings' => $bookings,
+            'showDate' => $showDate,
+            'search' => $search,
+        ]);
+    }
+
+    /**
+     * Void a pending or paid booking and release its seats.
+     */
+    public function cancelByStaff(Request $request, Booking $booking): RedirectResponse
+    {
+        $validated = $request->validate([
+            'cancellation_reason' => ['required', 'string', 'max:255'],
+        ]);
+
+        if (! in_array($booking->payment_status, ['pending', 'completed', 'paid'], true)) {
+            return back()->with('error', 'This booking cannot be cancelled.');
+        }
+
+        $staff = $request->user();
+        $booking->payment_status = 'cancelled';
+        $booking->cancelled_at = now();
+        $booking->cancelled_by = $staff->id;
+        $booking->cancellation_reason = $validated['cancellation_reason'];
+        $booking->save();
+
+        if ($booking->session_id) {
+            $this->seatLockService->releaseAllSessionLocks($booking->session_id);
+        }
+
+        $this->flowLogService->logPaymentFailure(
+            sessionId: $booking->session_id ?: 'staff_'.$booking->booking_reference,
+            errorMessage: 'Cancelled by '.$staff->name.': '.$validated['cancellation_reason'],
+            movieId: $booking->movie_id,
+            showDate: optional($booking->booking_date)->toDateString(),
+            showTime: $booking->booking_time,
+            selectedSeats: $booking->selected_seats,
+            ticketCount: count($booking->selected_seats ?? []),
+            userName: $booking->customer_name,
+            phoneNumber: $booking->customer_phone,
+            email: $booking->customer_email
+        );
+
+        return back()->with('status', 'Booking '.$booking->booking_reference.' was cancelled. Return any payment at the counter or from PayHere.');
+    }
+
+    /**
      * Display the counter booking interface.
      * Only accessible to users with manager or admin role.
      */
     public function counterBookingIndex(): View
     {
         $movies = Movie::where('book_now', true)
+            ->whereDate('show_end_date', '>=', now()->toDateString())
             ->orderBy('title')
             ->get();
 

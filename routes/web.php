@@ -98,6 +98,9 @@ Route::middleware('auth')->group(function () {
         // Counter Booking Routes
         Route::get('/counter-booking', [BookingController::class, 'counterBookingIndex'])->name('bookings.counter.index');
         Route::post('/counter-booking/book', [BookingController::class, 'counterBookingStore'])->name('bookings.counter.store');
+
+        Route::get('/manager/bookings', [BookingController::class, 'manage'])->name('bookings.manage');
+        Route::post('/manager/bookings/{booking}/cancel', [BookingController::class, 'cancelByStaff'])->name('bookings.cancel');
     });
 
     // Admin-only booking flow logging routes

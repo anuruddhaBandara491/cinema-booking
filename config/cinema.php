@@ -29,6 +29,7 @@ return [
         'phone' => env('CINEMA_PHONE', '+94 77 179 8183'),
         'email' => env('CINEMA_EMAIL', 'kiimalka@gmail.com'),
         'country' => env('CINEMA_COUNTRY', 'Sri Lanka'),
+        'registered_on' => env('CINEMA_REGISTERED_ON', '2024-05-20'),
         'policies_updated' => env('CINEMA_POLICIES_UPDATED', '18 November 2026'),
     ],
 

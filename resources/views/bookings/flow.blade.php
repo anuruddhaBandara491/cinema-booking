@@ -732,8 +732,8 @@
                 <!-- Desktop: Back button on left -->
                 <button type="button" class="btn-ghost hidden sm:inline-block" @click="step = Math.max(1, step - 1)" x-show="step > 1">Back</button>
 
-                <!-- Desktop: Next and Cancel buttons on right -->
-                <div class="hidden sm:flex items-center gap-3">
+                <!-- Desktop: Next and Cancel stay on the right, including step 1 when Back is hidden -->
+                <div class="hidden sm:flex items-center gap-3" style="margin-left: auto;">
                     <button type="button" class="btn-ghost" @click="
                         if (canContinue()) {
                             showErrors = false;

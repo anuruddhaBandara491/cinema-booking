@@ -1,4 +1,37 @@
 <x-app-layout>
+    <style>
+        @media print {
+            @page {
+                margin: 14mm;
+            }
+
+            html,
+            body,
+            .min-h-screen,
+            main,
+            section {
+                background: #fff !important;
+                color: #111827 !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .ticket-print,
+            .ticket-print * {
+                color: #111827 !important;
+                box-shadow: none !important;
+            }
+
+            .ticket-print .rounded-2xl {
+                background: #fff !important;
+                border-color: #d1d5db !important;
+                break-inside: avoid;
+            }
+        }
+    </style>
+
     @php
         $paymentStatus = $booking->payment_status;
         $isPaid = $paymentStatus === 'completed';
@@ -25,9 +58,9 @@
         </div>
     </x-slot>
 
-    <section class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <section id="bookingConfirmation__ticket" class="ticket-print mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
         @if (session('error'))
-            <div class="mb-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+            <div class="no-print mb-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
                 {{ session('error') }}
             </div>
         @endif
@@ -39,6 +72,9 @@
                 </svg>
                 <h3 class="mt-4 text-xl font-semibold text-emerald-400">Thank You!</h3>
                 <p class="mt-2 text-slate-300">Your payment was received and the seats are booked.</p>
+                @if ($booking->customer_email)
+                    <p class="mt-2 text-sm text-slate-300">A copy of this ticket was sent to {{ $booking->customer_email }}.</p>
+                @endif
             </div>
         @elseif ($isPending)
             <div class="rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-6 text-center">
@@ -59,7 +95,7 @@
                     <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Booking Reference</p>
                     <p class="mt-2 font-mono text-2xl font-bold text-white">{{ $booking->booking_reference }}</p>
                 </div>
-                <button type="button" onclick="navigator.clipboard.writeText('{{ $booking->booking_reference }}')" class="rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/20">
+                <button type="button" onclick="navigator.clipboard.writeText('{{ $booking->booking_reference }}')" class="no-print rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/20">
                     Copy Reference
                 </button>
             </div>
@@ -147,8 +183,13 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a href="{{ route('movies.index') }}" class="btn-primary flex-1 text-center">
+        <div class="no-print mt-8 flex flex-col gap-3 sm:flex-row">
+            @if ($isPaid)
+                <button type="button" id="bookingConfirmation__print_ticket" onclick="window.print()" class="btn-primary flex-1 text-center">
+                    Print ticket
+                </button>
+            @endif
+            <a href="{{ route('movies.index') }}" class="btn-ghost flex-1 text-center">
                 Browse movies
             </a>
             <a href="{{ route('contact') }}" class="btn-ghost flex-1 text-center">

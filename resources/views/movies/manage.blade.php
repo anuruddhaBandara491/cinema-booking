@@ -97,6 +97,7 @@
                         'booking_window_days' => $movie->booking_window_days ?? 3,
                         'is_published' => $movie->is_published,
                         'is_upcoming' => $movie->is_upcoming,
+                        'book_now' => (bool) $movie->book_now,
                         'update_url' => route('manager.movies.update', $movie),
                         'delete_url' => route('manager.movies.destroy', $movie),
                     ];

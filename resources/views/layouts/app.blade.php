@@ -19,10 +19,12 @@
     </head>
     <body class="font-sans antialiased bg-slate-950 text-slate-100">
         <div class="min-h-screen flex flex-col">
-            @include('layouts.navigation')
+            <div class="no-print">
+                @include('layouts.navigation')
+            </div>
 
             @isset($header)
-                <section class="border-b border-white/10 bg-slate-950/60">
+                <section class="no-print border-b border-white/10 bg-slate-950/60">
                     <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
@@ -33,7 +35,7 @@
                {{ $slot }}
             </main>
 
-            <footer class="border-t border-white/10 bg-slate-950">
+            <footer class="no-print border-t border-white/10 bg-slate-950">
                 <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
                     <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                         <div>

@@ -251,6 +251,33 @@ class SeatLockService
     }
 
     /**
+     * Seats on this booking that another completed or paid booking already owns.
+     *
+     * @return array<int, string>
+     */
+    public function seatsSoldOnOtherBookings(Booking $booking): array
+    {
+        $selectedSeats = $booking->selected_seats ?? [];
+
+        if ($selectedSeats === []) {
+            return [];
+        }
+
+        $soldSeats = Booking::query()
+            ->where('id', '!=', $booking->id)
+            ->where('movie_id', $booking->movie_id)
+            ->whereDate('booking_date', $booking->booking_date)
+            ->where('booking_time', $booking->booking_time)
+            ->whereIn('payment_status', ['completed', 'paid'])
+            ->get()
+            ->flatMap(fn (Booking $other) => $other->selected_seats ?? [])
+            ->unique()
+            ->all();
+
+        return array_values(array_intersect($selectedSeats, $soldSeats));
+    }
+
+    /**
      * Check if a specific seat is available (not booked and not locked).
      *
      * @param int $movieId

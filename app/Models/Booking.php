@@ -32,6 +32,9 @@ class Booking extends Model
         'payment_reference',
         'session_id',
         'booked_at',
+        'cancelled_at',
+        'cancelled_by',
+        'cancellation_reason',
     ];
 
     /**
@@ -42,6 +45,7 @@ class Booking extends Model
     protected $casts = [
         'booking_date' => 'date',
         'booked_at' => 'datetime',
+        'cancelled_at' => 'datetime',
         'selected_seats' => 'array',
         'tickets' => 'array',
     ];
@@ -52,6 +56,11 @@ class Booking extends Model
     public function movie(): BelongsTo
     {
         return $this->belongsTo(Movie::class);
+    }
+
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
     }
 
     /**
