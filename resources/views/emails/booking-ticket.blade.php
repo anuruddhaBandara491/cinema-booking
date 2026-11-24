@@ -50,7 +50,7 @@
                     </tr>
                 </table>
                 <p style="margin:8px 0 0;font-size:13px;line-height:1.5;color:#4b5563;">
-                    Amount paid: LKR {{ number_format((float) $booking->total_amount, 2) }}. Arrive at least 30 minutes before the show.
+                    Ticket price: LKR {{ number_format($ticketPrice, 2) }}. Arrive at least 30 minutes before the show.
                 </p>
             </td>
         </tr>

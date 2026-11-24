@@ -19,24 +19,10 @@
             <p class="mt-6 text-sm text-slate-400">Amount payable</p>
             <p class="text-3xl font-semibold text-white">LKR {{ number_format($booking->total_amount, 2) }}</p>
             <p class="mt-2 font-mono text-sm text-slate-400">{{ $booking->booking_reference }}</p>
-
-            @if ($checkoutUrl)
-                <p class="mt-6 text-sm text-slate-300">Redirecting you to PayHere to enter your card details.</p>
-                <form id="bookingPayment__payhere_form" method="post" action="{{ $checkoutUrl }}" class="mt-6">
-                    @foreach ($fields as $name => $value)
-                        <input type="hidden" name="{{ $name }}" value="{{ $value }}">
-                    @endforeach
-                    <button type="submit" class="btn-primary w-full">Continue to PayHere</button>
-                </form>
-                <script>
-                    document.getElementById('bookingPayment__payhere_form').submit();
-                </script>
-            @else
-                <p class="mt-6 text-sm text-rose-200">
-                    PayHere is not configured yet. Add PAYHERE_MERCHANT_ID and PAYHERE_MERCHANT_SECRET to the environment file, then open this payment page again.
-                </p>
-                <a href="{{ route('movies.index') }}" class="btn-ghost mt-6 inline-block">Back to movies</a>
-            @endif
+            <p class="mt-6 text-sm text-rose-200">
+                PayHere is not configured yet. Add PAYHERE_MERCHANT_ID and PAYHERE_MERCHANT_SECRET to the environment file, then open this payment page again.
+            </p>
+            <a href="{{ route('movies.index') }}" class="btn-ghost mt-6 inline-block">Back to movies</a>
         </div>
     </section>
 </x-app-layout>

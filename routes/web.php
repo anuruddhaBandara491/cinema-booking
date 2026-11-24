@@ -48,13 +48,9 @@ Route::get('/movies', [MovieController::class, 'index'])->name('movies.index');
 Route::get('/bookings/flow/{movie}', function (Movie $movie) {
     $ticketTypes = TicketType::orderBy('name')->get();
 
-    $appUrl = (string) config('app.url');
-
     return view('bookings.flow', [
         'movie' => $movie,
         'ticketTypes' => $ticketTypes,
-        'payhereSandbox' => (bool) config('payhere.sandbox'),
-        'payhereNotifyIsLocal' => str_contains($appUrl, 'localhost') || str_contains($appUrl, '127.0.0.1'),
     ]);
 })->name('bookings.flow');
 

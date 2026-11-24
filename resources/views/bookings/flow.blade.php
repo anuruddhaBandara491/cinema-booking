@@ -131,7 +131,7 @@
                 return '';
             }
 
-            if (this.step === 3 || this.step === 4) {
+            if (this.step === 3) {
                 this.validateStep3();
                 if (this.errors.name) {
                     return this.errors.name;
@@ -158,7 +158,7 @@
                 this.$refs.stepError?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
         },
-        maxStep: 4,
+        maxStep: 3,
         userDetails: {
             name: '',
             phoneNumber: '',
@@ -493,43 +493,28 @@
                 return totals;
             }, { box: 0, odc: 0 });
         },
-        calculateTotal() {
-            let total = 0;
-
-            // Calculate seat prices based on selected seats and ticket counts
-            for (const seat of this.seats) {
-                const seatType = this.seatType(seat);
-                if (seatType === 'box') {
-                    if (this.ticketTypePrices.box) {
-                        total += this.ticketTypePrices.box.adult_price;
-                    }
-                } else if (seatType === 'odc') {
-                    if (this.ticketTypePrices.odc) {
-                        total += this.ticketTypePrices.odc.adult_price;
-                    }
-                }
-            }
-
-            // Add booking charge
-            total += this.movieBookingCharge;
-
-            return total.toFixed(2);
+        priceForTypeId(id) {
+            return Object.values(this.ticketTypePrices).find((prices) => Number(prices.id) === Number(id)) || null;
         },
         calculateSeatPrices() {
             let seatPrice = 0;
-            for (const seat of this.seats) {
-                const seatType = this.seatType(seat);
-                if (seatType === 'box') {
-                    if (this.ticketTypePrices.box) {
-                        seatPrice += this.ticketTypePrices.box.adult_price;
-                    }
-                } else if (seatType === 'odc') {
-                    if (this.ticketTypePrices.odc) {
-                        seatPrice += this.ticketTypePrices.odc.adult_price;
-                    }
+
+            for (const [id, counts] of Object.entries(this.tickets)) {
+                const prices = this.priceForTypeId(id);
+                if (!prices) {
+                    continue;
                 }
+
+                seatPrice += (counts.adult || 0) * prices.adult_price;
+                seatPrice += (counts.child || 0) * (prices.child_price || 0);
             }
+
             return seatPrice.toFixed(2);
+        },
+        calculateTotal() {
+            const total = parseFloat(this.calculateSeatPrices()) + Number(this.movieBookingCharge || 0);
+
+            return total.toFixed(2);
         },
         calculateBookingCharge() {
             return this.movieBookingCharge.toFixed(2);
@@ -574,7 +559,7 @@
 
                 return totalSeats === totalTickets;
             }
-            if (this.step === 3 || this.step === 4) {
+            if (this.step === 3) {
                 return this.detailsAreValid() && this.termsAccepted && this.verificationAccepted;
             }
             return true;
@@ -643,17 +628,16 @@
                 </div>
                 <div class="w-full max-w-md">
                     <div class="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-400">
-                        <span>Your details</span>
-                        <span>PayHere</span>
+                        <span>Date</span>
+                        <span>Details</span>
                     </div>
                     <div class="mt-2 h-2 w-full rounded-full bg-canvas-muted">
                         <div class="h-2 rounded-full bg-gradient-to-r from-primary-600 via-accent to-amber-400 transition-all" :style="`width: ${((step - 1) / (maxStep - 1)) * 100}%`"></div>
                     </div>
-                    <div class="mt-4 grid grid-cols-4 gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 sm:text-[11px]">
+                    <div class="mt-4 grid grid-cols-3 gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 sm:text-[11px]">
                         <div :class="step >= 1 ? 'text-white' : ''">Date</div>
                         <div :class="step >= 2 ? 'text-white' : ''">Seats</div>
                         <div :class="step >= 3 ? 'text-white' : ''">Details</div>
-                        <div :class="step >= 4 ? 'text-white' : ''">Pay</div>
                     </div>
                 </div>
             </div>
@@ -663,7 +647,6 @@
                 @include('bookings.steps.step-2')
                 @include('bookings.steps.step-3')
                 @include('bookings.steps.step-4')
-                @include('bookings.steps.step-payment')
             </div>
 
             <p id="bookingFlow__step_error" x-ref="stepError" x-show="showErrors && validationMessage()" x-text="validationMessage()" x-cloak class="mt-8 rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-100"></p>
@@ -698,12 +681,6 @@
                                     show_time: parseTime(selectedTime),
                                     ticket_count: totalTickets(),
                                 });
-                            } else if (currentStep === 3) {
-                                logBookingEvent('user-details', {
-                                    user_name: userDetails.name,
-                                    phone_number: userDetails.phoneNumber,
-                                    email: userDetails.email,
-                                });
                             }
 
                             step = nextStep;
@@ -717,6 +694,11 @@
                             $event.preventDefault();
                             return;
                         }
+                        logBookingEvent('user-details', {
+                            user_name: userDetails.name,
+                            phone_number: userDetails.phoneNumber,
+                            email: userDetails.email,
+                        });
                         logBookingEvent('payment-attempt', {
                             movie_id: movieId,
                             show_date: parseDate(selectedDate),
@@ -726,7 +708,7 @@
                             phone_number: userDetails.phoneNumber,
                             email: userDetails.email
                         });
-                    ">Pay with PayHere</button>
+                    ">Pay</button>
                 </div>
 
                 <!-- Desktop: Back button on left -->
@@ -761,12 +743,6 @@
                                     show_time: parseTime(selectedTime),
                                     ticket_count: totalTickets(),
                                 });
-                            } else if (currentStep === 3) {
-                                logBookingEvent('user-details', {
-                                    user_name: userDetails.name,
-                                    phone_number: userDetails.phoneNumber,
-                                    email: userDetails.email,
-                                });
                             }
 
                             step = nextStep;
@@ -780,6 +756,11 @@
                             $event.preventDefault();
                             return;
                         }
+                        logBookingEvent('user-details', {
+                            user_name: userDetails.name,
+                            phone_number: userDetails.phoneNumber,
+                            email: userDetails.email,
+                        });
                         logBookingEvent('payment-attempt', {
                             movie_id: movieId,
                             show_date: parseDate(selectedDate),
@@ -789,7 +770,7 @@
                             phone_number: userDetails.phoneNumber,
                             email: userDetails.email
                         });
-                    ">Pay with PayHere</button>
+                    ">Pay</button>
                     <a href="{{ url('/movies') }}" class="text-xs uppercase tracking-[0.2em] text-slate-400 hover:text-white">Cancel</a>
                 </div>
 

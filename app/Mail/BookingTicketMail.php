@@ -34,7 +34,19 @@ class BookingTicketMail extends Mailable
             with: [
                 'cinemaName' => config('cinema.business.name'),
                 'booking' => $this->booking,
+                'ticketPrice' => $this->ticketPriceWithoutHandlingFee(),
             ],
         );
+    }
+
+    /**
+     * Ticket total stored on the booking includes the movie handling fee once.
+     */
+    private function ticketPriceWithoutHandlingFee(): float
+    {
+        $handlingFee = (float) ($this->booking->movie?->booking_charge ?? 0);
+        $ticketPrice = (float) $this->booking->total_amount - $handlingFee;
+
+        return max(0, $ticketPrice);
     }
 }

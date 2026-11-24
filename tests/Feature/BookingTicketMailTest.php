@@ -45,7 +45,10 @@ class BookingTicketMailTest extends TestCase
                 && str_contains($html, 'Night Show')
                 && str_contains($html, 'Sunday, 22 Nov 2026')
                 && str_contains($html, '18:30')
-                && str_contains($html, 'A12, A13');
+                && str_contains($html, 'A12, A13')
+                && str_contains($html, 'Ticket price: LKR 1,450.00')
+                && ! str_contains($html, 'Amount paid')
+                && ! str_contains($html, '1,500.00');
         });
     }
 

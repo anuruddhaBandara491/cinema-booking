@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Movie;
 use App\Models\TicketType;
+use App\Services\PayhereService;
 use App\Services\SeatLockService;
 use App\Services\BookingFlowLogService;
 use Illuminate\Http\Request;
@@ -18,17 +19,22 @@ class BookingController extends Controller
 {
     protected SeatLockService $seatLockService;
     protected BookingFlowLogService $flowLogService;
+    protected PayhereService $payhereService;
 
-    public function __construct(SeatLockService $seatLockService, BookingFlowLogService $flowLogService)
-    {
+    public function __construct(
+        SeatLockService $seatLockService,
+        BookingFlowLogService $flowLogService,
+        PayhereService $payhereService
+    ) {
         $this->seatLockService = $seatLockService;
         $this->flowLogService = $flowLogService;
+        $this->payhereService = $payhereService;
     }
 
     /**
      * Store a newly created booking in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|View
     {
         $validated = [];
 
@@ -46,13 +52,22 @@ class BookingController extends Controller
                 'selected_seats' => 'required|array|min:1',
                 'selected_seats.*' => 'string',
                 'tickets' => 'required|array',
+                'tickets.*' => 'array',
+                'tickets.*.adult' => 'nullable|integer|min:0',
+                'tickets.*.child' => 'nullable|integer|min:0',
                 'session_id' => 'required|string',
                 'total_amount' => 'required|numeric|min:0',
                 'payment_method' => 'required|in:card,wallet,cash',
             ]);
 
             $movie = Movie::query()->findOrFail($validated['movie_id']);
-            $amount = $this->calculatePayableAmount($movie, $validated['selected_seats']);
+            $seatMismatch = $this->seatMismatchMessage($validated['selected_seats'], $validated['tickets']);
+
+            if ($seatMismatch !== null) {
+                return back()->with('error', $seatMismatch)->withInput();
+            }
+
+            $amount = $this->calculatePayableAmount($movie, $validated['tickets']);
 
             if ((float) $amount <= 0) {
                 return back()->with('error', 'This booking has no amount to pay.')->withInput();
@@ -87,7 +102,7 @@ class BookingController extends Controller
             $booking->customer_name = $validated['customer_name'];
             $booking->customer_phone = $validated['customer_phone'];
             $booking->customer_email = $validated['customer_email'];
-            $booking->customer_nic = $validated['customer_nic'];
+            $booking->customer_nic = $validated['customer_nic'] ?? null;
             $booking->booking_date = $validated['booking_date'];
             $booking->booking_time = $validated['booking_time'];
             $booking->selected_seats = $validated['selected_seats'];
@@ -98,7 +113,7 @@ class BookingController extends Controller
             $booking->session_id = $validated['session_id'];
             $booking->save();
 
-            return redirect()->route('bookings.payhere.checkout', $booking);
+            return $this->payhereCheckoutResponse($booking);
         } catch (ValidationException $exception) {
             throw $exception;
         } catch (\Exception $e) {
@@ -122,6 +137,23 @@ class BookingController extends Controller
 
             return back()->with('error', 'Failed to create booking: ' . $e->getMessage())->withInput();
         }
+    }
+
+    /**
+     * PayHere checkout is a POST, so send that form in this response.
+     */
+    private function payhereCheckoutResponse(Booking $booking): RedirectResponse|View
+    {
+        if (! $this->payhereService->isConfigured()) {
+            return redirect()->route('bookings.payhere.checkout', $booking);
+        }
+
+        $booking->loadMissing('movie');
+
+        return view('bookings.payhere-redirect', [
+            'checkoutUrl' => $this->payhereService->checkoutUrl(),
+            'fields' => $this->payhereService->checkoutFields($booking),
+        ]);
     }
 
     /**
@@ -151,25 +183,94 @@ class BookingController extends Controller
     }
 
     /**
-     * Charge the same amount the booking screen shows: one adult price per
-     * selected seat, plus the movie handling fee.
+     * Charge each selected ticket. Online checkout adds the movie handling fee once.
+     * A box seat still covers two box tickets, but each person is priced.
+     *
+     * @param  array<int|string, array{adult?: int, child?: int}>  $tickets
+     */
+    private function calculatePayableAmount(Movie $movie, array $tickets, bool $includeHandlingFee = true): string
+    {
+        $ticketTypes = TicketType::query()->get()->keyBy('id');
+        $total = 0.0;
+
+        foreach ($tickets as $typeId => $counts) {
+            $type = $ticketTypes->get((int) $typeId);
+
+            if (! $type || ! is_array($counts)) {
+                continue;
+            }
+
+            $adult = (int) ($counts['adult'] ?? 0);
+            $child = (int) ($counts['child'] ?? 0);
+            $total += $adult * (float) $type->adult_price;
+
+            if ($child > 0 && $type->has_child) {
+                $total += $child * (float) $type->child_price;
+            }
+        }
+
+        if ($includeHandlingFee) {
+            $total += (float) ($movie->booking_charge ?? 0);
+        }
+
+        return number_format($total, 2, '.', '');
+    }
+
+    /**
+     * ODC needs one seat per person. One box seat covers two box tickets.
      *
      * @param  array<int, string>  $seats
+     * @param  array<int|string, array{adult?: int, child?: int}>  $tickets
      */
-    private function calculatePayableAmount(Movie $movie, array $seats): string
+    private function seatMismatchMessage(array $seats, array $tickets): ?string
     {
-        $ticketTypes = TicketType::query()->get()->keyBy(fn (TicketType $type) => strtolower($type->name));
-        $total = 0.0;
+        $ticketTypes = TicketType::query()->get()->keyBy('id');
+        $odcTickets = 0;
+        $boxTickets = 0;
+
+        foreach ($tickets as $typeId => $counts) {
+            $type = $ticketTypes->get((int) $typeId);
+
+            if (! $type || ! is_array($counts)) {
+                return 'Ticket selection is not valid.';
+            }
+
+            $adult = (int) ($counts['adult'] ?? 0);
+            $child = (int) ($counts['child'] ?? 0);
+
+            if ($child > 0 && ! $type->has_child) {
+                return 'Child tickets are not available for '.$type->name.'.';
+            }
+
+            if (strtolower($type->name) === 'box') {
+                $boxTickets += $adult + $child;
+            } else {
+                $odcTickets += $adult + $child;
+            }
+        }
+
+        if ($boxTickets % 2 !== 0) {
+            return 'Box tickets must be selected in pairs.';
+        }
+
+        $odcSeats = 0;
+        $boxSeats = 0;
 
         foreach ($seats as $seat) {
             $row = strtoupper(substr((string) $seat, 0, 1));
-            $typeName = in_array($row, ['G', 'H'], true) ? 'box' : 'odc';
-            $total += (float) ($ticketTypes->get($typeName)?->adult_price ?? 0);
+
+            if (in_array($row, ['G', 'H'], true)) {
+                $boxSeats++;
+            } else {
+                $odcSeats++;
+            }
         }
 
-        $total += (float) ($movie->booking_charge ?? 0);
+        if ($odcSeats !== $odcTickets || $boxSeats !== intdiv($boxTickets, 2)) {
+            return 'The selected seats do not match the tickets.';
+        }
 
-        return number_format($total, 2, '.', '');
+        return null;
     }
 
     /**
@@ -217,6 +318,7 @@ class BookingController extends Controller
             'bookings' => $bookings,
             'showDate' => $showDate,
             'search' => $search,
+            'ticketTypes' => TicketType::query()->orderBy('name')->get(),
         ]);
     }
 
@@ -273,6 +375,7 @@ class BookingController extends Controller
 
         return view('bookings.counter-booking', [
             'movies' => $movies,
+            'ticketTypes' => TicketType::query()->orderBy('name')->get(),
         ]);
     }
 
@@ -290,10 +393,32 @@ class BookingController extends Controller
                 'booking_time' => 'required|string',
                 'selected_seats' => 'required|array|min:1',
                 'selected_seats.*' => 'string',
+                'tickets' => 'required|array',
+                'tickets.*' => 'array',
+                'tickets.*.adult' => 'nullable|integer|min:0',
+                'tickets.*.child' => 'nullable|integer|min:0',
                 'customer_name' => 'nullable|string|max:255',
                 'customer_phone' => 'nullable|string|max:20',
-                'total_amount' => 'required|numeric|min:0',
             ]);
+
+            $movie = Movie::query()->findOrFail($validated['movie_id']);
+            $seatMismatch = $this->seatMismatchMessage($validated['selected_seats'], $validated['tickets']);
+
+            if ($seatMismatch !== null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $seatMismatch,
+                ], 422);
+            }
+
+            $amount = $this->calculatePayableAmount($movie, $validated['tickets'], false);
+
+            if ((float) $amount <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This booking has no amount to pay.',
+                ], 422);
+            }
 
             // Verify seats are still available
             $bookedSeats = $this->seatLockService
@@ -314,12 +439,12 @@ class BookingController extends Controller
             $booking->movie_id = $validated['movie_id'];
             $booking->booking_reference = Booking::generateReference();
             $booking->customer_name = $validated['customer_name'] ?? 'Counter Walk-in';
-            $booking->customer_phone = $validated['customer_phone'] ?? null;
+            $booking->customer_phone = $validated['customer_phone'] ?? '';
             $booking->booking_date = $validated['booking_date'];
             $booking->booking_time = $validated['booking_time'];
             $booking->selected_seats = $validated['selected_seats'];
-            $booking->tickets = []; // Counter bookings don't track ticket types separately
-            $booking->total_amount = $validated['total_amount'];
+            $booking->tickets = $validated['tickets'];
+            $booking->total_amount = $amount;
             $booking->payment_method = 'cash';
             $booking->payment_status = 'paid';
             $booking->booked_at = now();
@@ -341,10 +466,16 @@ class BookingController extends Controller
                     'customer_name' => $booking->customer_name,
                     'customer_phone' => $booking->customer_phone,
                     'seats' => $booking->selected_seats,
+                    'tickets' => $booking->ticketHeadcountLabel(),
                     'total_amount' => $booking->total_amount,
                     'booked_at' => $booking->booked_at->format('Y-m-d H:i:s'),
                 ],
             ], 201);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => collect($exception->errors())->flatten()->first() ?? 'The booking details are not valid.',
+            ], 422);
         } catch (\Exception $e) {
             Log::error('Counter booking creation failed', [
                 'error' => $e->getMessage(),

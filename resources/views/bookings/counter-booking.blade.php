@@ -6,6 +6,15 @@
     $boxRows = ['G', 'H'];
     $boxLeft = range(1, 4);
     $boxRight = range(5, 8);
+    $ticketTypes = $ticketTypes ?? collect();
+    $ticketCounts = $ticketTypes
+        ->mapWithKeys(fn ($type) => [$type->id => ['adult' => 0, 'child' => 0]])
+        ->all();
+    $boxTypeIds = $ticketTypes
+        ->filter(fn ($type) => strtolower($type->name) === 'box')
+        ->pluck('id')
+        ->values()
+        ->all();
 @endphp
 
 <x-app-layout>
@@ -24,6 +33,10 @@
         customerName: '',
         customerPhone: '',
         movies: @js($movies),
+        tickets: @js($ticketCounts),
+        emptyTickets: @js($ticketCounts),
+        boxTypeIds: @js($boxTypeIds),
+        ticketTypePrices: @js($ticketTypes->mapWithKeys(fn ($type) => [strtolower($type->name) => ['id' => $type->id, 'adult_price' => (float) $type->adult_price, 'child_price' => $type->has_child ? (float) $type->child_price : 0]])->all()),
         bookedSeats: [],
         lockedSeats: [],
         isProcessing: false,
@@ -92,21 +105,112 @@
                 this.selectedSeats.push(seat);
             }
         },
+        totalTickets() {
+            return Object.values(this.tickets).reduce((sum, item) => {
+                return sum + (item.adult || 0) + (item.child || 0);
+            }, 0);
+        },
+        adultCount() {
+            return Object.values(this.tickets).reduce((sum, item) => sum + (item.adult || 0), 0);
+        },
+        childCount() {
+            return Object.values(this.tickets).reduce((sum, item) => sum + (item.child || 0), 0);
+        },
+        ticketStep(id) {
+            return this.boxTypeIds.includes(id) ? 2 : 1;
+        },
+        ticketTotal(id) {
+            const item = this.tickets[id] || { adult: 0, child: 0 };
+            return (item.adult || 0) + (item.child || 0);
+        },
+        ticketTotalsByType() {
+            return Object.entries(this.tickets).reduce((totals, [id, counts]) => {
+                const total = (counts.adult || 0) + (counts.child || 0);
+                if (this.boxTypeIds.includes(Number(id))) {
+                    totals.box += total;
+                } else {
+                    totals.odc += total;
+                }
+                return totals;
+            }, { box: 0, odc: 0 });
+        },
+        seatType(seat) {
+            const row = String(seat).charAt(0).toUpperCase();
+            return ['G', 'H'].includes(row) ? 'box' : 'odc';
+        },
+        seatTotalsByType() {
+            return this.selectedSeats.reduce((totals, seat) => {
+                totals[this.seatType(seat)] += 1;
+                return totals;
+            }, { box: 0, odc: 0 });
+        },
+        priceForTypeId(id) {
+            return Object.values(this.ticketTypePrices).find((prices) => Number(prices.id) === Number(id)) || null;
+        },
+        calculateSeatPrices() {
+            let seatPrice = 0;
+
+            for (const [id, counts] of Object.entries(this.tickets)) {
+                const prices = this.priceForTypeId(id);
+                if (!prices) {
+                    continue;
+                }
+
+                seatPrice += (counts.adult || 0) * prices.adult_price;
+                seatPrice += (counts.child || 0) * (prices.child_price || 0);
+            }
+
+            return seatPrice;
+        },
         calculateTotal() {
-            // Base price per seat - you may need to adjust this based on your pricing logic
-            const pricePerSeat = 500;
-            return this.selectedSeats.length * pricePerSeat;
+            if (this.totalTickets() === 0) {
+                return 0;
+            }
+
+            return this.calculateSeatPrices();
+        },
+        formatMoney(amount) {
+            return `LKR ${Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        },
+        isBoxValid(id) {
+            return this.ticketTotal(id) % 2 === 0;
+        },
+        incrementTicket(id, key) {
+            const step = this.ticketStep(id);
+            this.tickets[id][key] += step;
+        },
+        decrementTicket(id, key) {
+            const step = this.ticketStep(id);
+            this.tickets[id][key] = Math.max(0, this.tickets[id][key] - step);
+        },
+        seatMatchMessage() {
+            if (this.selectedSeats.length === 0 && this.totalTickets() === 0) {
+                return '';
+            }
+
+            if (!this.boxTypeIds.every((id) => this.isBoxValid(id))) {
+                return 'Box tickets must be selected in pairs.';
+            }
+
+            const ticketTotals = this.ticketTotalsByType();
+            const seatTotals = this.seatTotalsByType();
+
+            if (seatTotals.odc !== ticketTotals.odc || seatTotals.box !== ticketTotals.box / 2) {
+                return 'Adult and child counts must match the selected seats. One ODC seat is one person. One box seat covers two people.';
+            }
+
+            return '';
         },
         canBook() {
-            return this.movieId && this.bookingDate && this.bookingTime && this.selectedSeats.length > 0;
+            return this.movieId && this.bookingDate && this.bookingTime && this.selectedSeats.length > 0 && this.totalTickets() > 0 && this.seatMatchMessage() === '';
         },
         confirmBooking() {
             if (!this.canBook()) {
-                this.showMessage('Please select at least one seat', 'error');
+                this.showMessage(this.seatMatchMessage() || 'Select seats and matching adult and child counts', 'error');
                 return;
             }
 
-            if (!confirm(`Confirm booking for ${this.selectedSeats.length} seat(s)?`)) {
+            if (!confirm(`Confirm booking for ${this.adultCount()} adult(s) and ${this.childCount()} child(ren)? Total ${this.formatMoney(this.calculateTotal())}`)) {
                 return;
             }
 
@@ -126,19 +230,19 @@
                     booking_date: this.bookingDate,
                     booking_time: convertedTime,
                     selected_seats: this.selectedSeats,
+                    tickets: this.tickets,
                     customer_name: this.customerName || null,
-                    customer_phone: this.customerPhone || null,
-                    total_amount: this.calculateTotal()
+                    customer_phone: this.customerPhone || null
                 })
             })
             .then(res => res.json())
             .then(data => {
                 this.isProcessing = false;
                 if (data.success) {
-                    this.showMessage(`Booking successful! Reference: ${data.booking.reference}`, 'success');
-                    // Reset form
+                    const guestSummary = data.booking.tickets ? ` ${data.booking.tickets}.` : '';
+                    this.showMessage(`Booking successful! Reference: ${data.booking.reference}.${guestSummary} Total ${this.formatMoney(data.booking.total_amount)}.`, 'success');
                     setTimeout(() => {
-                        this.resetForm();
+                        this.resetForm(true);
                     }, 1500);
                 } else {
                     this.showMessage(data.message, 'error');
@@ -150,14 +254,17 @@
                 this.showMessage('An error occurred while processing the booking', 'error');
             });
         },
-        resetForm() {
+        resetForm(keepMessage = false) {
             this.selectedSeats = [];
             this.customerName = '';
             this.customerPhone = '';
             this.movieId = null;
             this.bookingDate = new Date().toISOString().split('T')[0];
             this.bookingTime = '';
-            this.message = '';
+            this.tickets = JSON.parse(JSON.stringify(this.emptyTickets));
+            if (!keepMessage) {
+                this.message = '';
+            }
             this.updateSeatStatus();
         },
         showMessage(msg, type) {
@@ -344,13 +451,69 @@
                     <!-- Selected Seats Display -->
                     <div class="rounded-lg bg-slate-900/40 border border-slate-700/40 p-3">
                         <p class="text-xs uppercase tracking-[0.2em] text-slate-400 mb-2">Selected Seats</p>
-                        <p class="text-lg font-semibold text-emerald-400" x-text="selectedSeats.length > 0 ? selectedSeats.join(', ') : 'None'"></p>
+                        <p id="counterBooking__selected_seats" class="text-lg font-semibold text-emerald-400" x-text="selectedSeats.length > 0 ? selectedSeats.join(', ') : 'None'"></p>
                     </div>
 
-                    <!-- Total Amount -->
-                    <div class="rounded-lg bg-slate-900/40 border border-slate-700/40 p-3">
-                        <p class="text-xs uppercase tracking-[0.2em] text-slate-400 mb-2">Total Amount</p>
-                        <p class="text-2xl font-bold text-white" x-text="`LKR ${calculateTotal().toLocaleString()}`"></p>
+                    <!-- Adult and child counts -->
+                    <div class="space-y-3">
+                        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Adult and child counts</p>
+                        @forelse ($ticketTypes as $ticketType)
+                            @php($ticketKey = strtolower((string) preg_replace('/[^a-z0-9]+/i', '_', $ticketType->name)))
+                            <div class="rounded-lg border border-slate-700/40 bg-slate-900/40 p-3">
+                                <p class="text-sm uppercase tracking-[0.2em] text-slate-300">{{ $ticketType->name }}</p>
+                                @if (strtolower($ticketType->name) === 'box')
+                                    <p class="mt-1 text-[11px] uppercase tracking-[0.16em] text-amber-300">Pairs only. One box seat covers two people.</p>
+                                @endif
+                                <div class="mt-3 flex items-center justify-between gap-3">
+                                    <div>
+                                        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Adult</p>
+                                        <p class="text-sm font-semibold text-white">LKR {{ number_format($ticketType->adult_price, 2) }}</p>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" id="counterBooking__{{ $ticketKey }}_adult_decrement" class="h-8 w-8 rounded-full border border-white/10 text-white" @click="decrementTicket({{ $ticketType->id }}, 'adult')">-</button>
+                                        <span id="counterBooking__{{ $ticketKey }}_adult_count" class="min-w-[2ch] text-center text-white" x-text="tickets[{{ $ticketType->id }}].adult"></span>
+                                        <button type="button" id="counterBooking__{{ $ticketKey }}_adult_increment" class="h-8 w-8 rounded-full border border-white/10 text-white" @click="incrementTicket({{ $ticketType->id }}, 'adult')">+</button>
+                                    </div>
+                                </div>
+                                @if ($ticketType->has_child)
+                                    <div class="mt-3 flex items-center justify-between gap-3">
+                                        <div>
+                                            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Child</p>
+                                            <p class="text-sm font-semibold text-white">LKR {{ number_format($ticketType->child_price, 2) }}</p>
+                                            @if (strtolower($ticketType->name) === 'odc')
+                                                <p class="mt-1 text-[11px] uppercase tracking-[0.16em] text-slate-500">Ages 2-13 only</p>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <button type="button" id="counterBooking__{{ $ticketKey }}_child_decrement" class="h-8 w-8 rounded-full border border-white/10 text-white" @click="decrementTicket({{ $ticketType->id }}, 'child')">-</button>
+                                            <span id="counterBooking__{{ $ticketKey }}_child_count" class="min-w-[2ch] text-center text-white" x-text="tickets[{{ $ticketType->id }}].child"></span>
+                                            <button type="button" id="counterBooking__{{ $ticketKey }}_child_increment" class="h-8 w-8 rounded-full border border-white/10 text-white" @click="incrementTicket({{ $ticketType->id }}, 'child')">+</button>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        @empty
+                            <div class="rounded-lg border border-white/10 bg-slate-900/40 p-3 text-sm text-slate-400">
+                                No ticket prices are set up yet.
+                            </div>
+                        @endforelse
+                        <p id="counterBooking__seat_match" x-show="seatMatchMessage()" x-cloak class="text-xs text-amber-300" x-text="seatMatchMessage()"></p>
+                    </div>
+
+                    <!-- Guest counts and total -->
+                    <div class="rounded-lg bg-slate-900/40 border border-slate-700/40 p-3 space-y-2">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-400">Adults</span>
+                            <span id="counterBooking__adult_count" class="font-semibold text-white" x-text="adultCount()"></span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-400">Children</span>
+                            <span id="counterBooking__child_count" class="font-semibold text-white" x-text="childCount()"></span>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-slate-700/60 pt-2">
+                            <span class="text-xs uppercase tracking-[0.2em] text-slate-400">Total</span>
+                            <span id="counterBooking__total_amount" class="text-2xl font-bold text-white" x-text="formatMoney(calculateTotal())"></span>
+                        </div>
                     </div>
 
                     <!-- Customer Name (Optional) -->

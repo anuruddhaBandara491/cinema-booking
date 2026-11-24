@@ -40,11 +40,9 @@ class PayhereController extends Controller
             ]);
         }
 
-        return view('bookings.payhere-checkout', [
-            'booking' => $booking,
+        return view('bookings.payhere-redirect', [
             'checkoutUrl' => $this->payhereService->checkoutUrl(),
             'fields' => $this->payhereService->checkoutFields($booking),
-            'sandbox' => $this->payhereService->isSandbox(),
         ]);
     }
 
